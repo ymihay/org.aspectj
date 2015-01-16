@@ -324,7 +324,7 @@ public class AjCompilerAdapter extends AbstractCompilerAdapter {
 		// resultsPendingWeave.addAll(getBinarySourcesFrom(binarySourceSetForFullWeave));
 		// }
 		try {
-			weaver.weave(new WeaverAdapter(this, weaverMessageHandler, progressListener));
+			weaver.weave(new WeaverAdapter(this, weaverMessageHandler, progressListener), null);
 		} finally {
 			// ???: is this the right point for this? After weaving has finished clear the caches.
 			weaverMessageHandler.setCurrentResult(null);

@@ -138,7 +138,6 @@ public class AjcTestCase extends TestCase {
 		private String text;
 		private String sourceFileName;
 		private ISourceLocation[] seeAlsos;
-		public boolean careAboutOtherMessages = true;
 
 		/**
 		 * Create a message that will match any compiler message on the given line.
@@ -154,11 +153,6 @@ public class AjcTestCase extends TestCase {
 		public Message(int line, String text) {
 			this.line = line;
 			this.text = text;
-			if (this.text != null && text.startsWith("*")) {
-				// Don't care what other messages are around
-				this.careAboutOtherMessages = false;
-				this.text = this.text.substring(1);
-			}
 		}
 
 		/**
@@ -187,11 +181,6 @@ public class AjcTestCase extends TestCase {
 				this.sourceFileName = srcFileName.toString();
 			}
 			this.text = text;
-			if (this.text != null && text.startsWith("*")) {
-				// Don't care what other messages are around
-				this.careAboutOtherMessages = false;
-				this.text = this.text.substring(1);
-			}
 			this.seeAlsos = seeAlso;
 		}
 
@@ -200,11 +189,6 @@ public class AjcTestCase extends TestCase {
 		 */
 		public Message(String text) {
 			this.text = text;
-			if (this.text != null && text.startsWith("*")) {
-				// Don't care what other messages are around
-				this.careAboutOtherMessages = false;
-				this.text = this.text.substring(1);
-			}
 		}
 
 		/**
@@ -304,11 +288,11 @@ public class AjcTestCase extends TestCase {
 				Collections.EMPTY_LIST, Collections.EMPTY_LIST);
 
 		boolean ignoreInfos = true;
-		public List<AjcTestCase.Message> fails;
-		public List<AjcTestCase.Message> infos;
-		public List<AjcTestCase.Message> warnings;
-		public List<AjcTestCase.Message> errors;
-		public List<AjcTestCase.Message> weaves;
+		public List fails;
+		public List infos;
+		public List warnings;
+		public List errors;
+		public List weaves;
 
 		/**
 		 * Set to true to enable or disable comparison of information messages.
@@ -333,25 +317,24 @@ public class AjcTestCase extends TestCase {
 		 * @param errors The set of error messages to test for - can pass null to indicate empty set.
 		 * @param fails The set of fail or abort messages to test for - can pass null to indicate empty set.
 		 */
-		public MessageSpec(List<AjcTestCase.Message> infos, List<AjcTestCase.Message> warnings, 
-				List<AjcTestCase.Message> errors, List<AjcTestCase.Message> fails, List<AjcTestCase.Message> weaves) {
+		public MessageSpec(List infos, List warnings, List errors, List fails, List weaves) {
 			if (infos != null) {
 				this.infos = infos;
 				ignoreInfos = false;
 			} else {
-				this.infos = Collections.emptyList();
+				this.infos = Collections.EMPTY_LIST;
 			}
-			this.warnings = ((warnings == null) ? Collections.<AjcTestCase.Message>emptyList() : warnings);
-			this.errors = ((errors == null) ? Collections.<AjcTestCase.Message>emptyList() : errors);
-			this.fails = ((fails == null) ? Collections.<AjcTestCase.Message>emptyList() : fails);
-			this.weaves = ((weaves == null) ? Collections.<AjcTestCase.Message>emptyList() : weaves);
+			this.warnings = ((warnings == null) ? Collections.EMPTY_LIST : warnings);
+			this.errors = ((errors == null) ? Collections.EMPTY_LIST : errors);
+			this.fails = ((fails == null) ? Collections.EMPTY_LIST : fails);
+			this.weaves = ((weaves == null) ? Collections.EMPTY_LIST : weaves);
 		}
 
 		/**
 		 * Create a message specification to test a CompilationResult for a given set of info, warning, and error messages. The
 		 * presence of any fail or abort messages in a CompilationResult will be a test failure.
 		 */
-		public MessageSpec(List<AjcTestCase.Message> infos, List<AjcTestCase.Message> warnings, List<AjcTestCase.Message> errors) {
+		public MessageSpec(List infos, List warnings, List errors) {
 			this(infos, warnings, errors, null, null);
 		}
 
@@ -359,7 +342,7 @@ public class AjcTestCase extends TestCase {
 		 * Create a message specification to test a CompilationResult for a given set of warning, and error messages. The presence
 		 * of any fail or abort messages in a CompilationResult will be a test failure. Informational messages will be ignored.
 		 */
-		public MessageSpec(List<AjcTestCase.Message> warnings, List<AjcTestCase.Message> errors) {
+		public MessageSpec(List warnings, List errors) {
 			this(null, warnings, errors, null, null);
 		}
 	}
@@ -441,11 +424,11 @@ public class AjcTestCase extends TestCase {
 	public void assertMessages(CompilationResult result, String message, MessageSpec expected) {
 		if (result == null)
 			fail("Attempt to compare null compilation results against expected.");
-		List<AjcTestCase.Message> missingFails = copyAll(expected.fails);
-		List<AjcTestCase.Message> missingInfos = copyAll(expected.infos);
-		List<AjcTestCase.Message> missingWarnings = copyAll(expected.warnings);
-		List<AjcTestCase.Message> missingErrors = copyAll(expected.errors);
-		List<AjcTestCase.Message> missingWeaves = copyAll(expected.weaves);
+		List missingFails = copyAll(expected.fails);
+		List missingInfos = copyAll(expected.infos);
+		List missingWarnings = copyAll(expected.warnings);
+		List missingErrors = copyAll(expected.errors);
+		List missingWeaves = copyAll(expected.weaves);
 		List<IMessage> extraFails = copyAll(result.getFailMessages());
 		List<IMessage> extraInfos = copyAll(result.getInfoMessages());
 		List<IMessage> extraWarnings = copyAll(result.getWarningMessages());
@@ -890,12 +873,12 @@ public class AjcTestCase extends TestCase {
 		return ret;
 	}
 
-	private <T> List<T> copyAll(List<T> in) {
+	private List copyAll(List in) {
 		if (in == Collections.EMPTY_LIST)
 			return in;
 
-		List<T> out = new ArrayList<T>();
-		for (Iterator<T> iter = in.iterator(); iter.hasNext();) {
+		List out = new ArrayList();
+		for (Iterator iter = in.iterator(); iter.hasNext();) {
 			out.add(iter.next());
 		}
 		return out;
@@ -910,29 +893,25 @@ public class AjcTestCase extends TestCase {
 	 * @param missingElements the missing messages, when passed in must contain all of the expected messages
 	 * @param extraElements the additional messages, when passed in must contain all of the actual messages
 	 */
-	private void compare(List<AjcTestCase.Message> expected, List<IMessage> actual, List<AjcTestCase.Message> missingElements, List<IMessage> extraElements) {
-		for (Message expectedMessage: expected) {
-			for (IMessage actualMessage: actual) {
+	private void compare(List expected, List actual, List missingElements, List extraElements) {
+		for (Iterator expectedIter = expected.iterator(); expectedIter.hasNext();) {
+			Message expectedMessage = (Message) expectedIter.next();
+			for (Iterator actualIter = actual.iterator(); actualIter.hasNext();) {
+				IMessage actualMessage = (IMessage) actualIter.next();
 				if (expectedMessage.matches(actualMessage)) {
-					if (expectedMessage.careAboutOtherMessages) {
-						missingElements.remove(expectedMessage);
-						extraElements.remove(actualMessage);
-					}
-					else {
-						missingElements.clear();
-						extraElements.clear();
-					}
+					missingElements.remove(expectedMessage);
+					extraElements.remove(actualMessage);
 				}
 			}
 		}
 	}
 
-	private void addMissing(StringBuffer buff, String type, List<AjcTestCase.Message> messages) {
+	private void addMissing(StringBuffer buff, String type, List messages) {
 		if (!messages.isEmpty()) {
 			buff.append("Missing expected ");
 			buff.append(type);
 			buff.append(" messages:\n");
-			for (Iterator<AjcTestCase.Message> iter = messages.iterator(); iter.hasNext();) {
+			for (Iterator iter = messages.iterator(); iter.hasNext();) {
 				buff.append("\t");
 				buff.append(iter.next().toString());
 				buff.append("\n");

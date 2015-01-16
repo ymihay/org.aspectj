@@ -262,17 +262,19 @@ public class ClassLoaderWeavingAdaptor extends WeavingAdaptor {
 					// System.out.println("? registerDefinitions: found-aop.xml=" + xmls.hasMoreElements() + ", loader=" + loader);
 
 					Set<URL> seenBefore = new HashSet<URL>();
-					while (xmls.hasMoreElements()) {
-						URL xml = xmls.nextElement();
-						if (trace.isTraceEnabled()) {
-							trace.event("parseDefinitions", this, xml);
-						}
-						if (!seenBefore.contains(xml)) {
-							info("using configuration " + weavingContext.getFile(xml));
-							definitions.add(DocumentParser.parse(xml));
-							seenBefore.add(xml);
-						} else {
-							debug("ignoring duplicate definition: " + xml);
+					if (xmls != null ){
+						while (xmls.hasMoreElements()) {
+							URL xml = xmls.nextElement();
+							if (trace.isTraceEnabled()) {
+								trace.event("parseDefinitions", this, xml);
+							}
+							if (!seenBefore.contains(xml)) {
+								info("using configuration " + weavingContext.getFile(xml));
+								definitions.add(DocumentParser.parse(xml));
+								seenBefore.add(xml);
+							} else {
+								debug("ignoring duplicate definition: " + xml);
+							}
 						}
 					}
 				}
@@ -556,7 +558,7 @@ public class ClassLoaderWeavingAdaptor extends WeavingAdaptor {
 			byte[] bytes = gen.getBytes();
 
 			try {
-				byte[] newBytes = weaveClass(name, bytes, true);
+				byte[] newBytes = weaveClass(name, bytes, true, null);
 				this.generatedClassHandler.acceptClass(name, bytes, newBytes);
 			} catch (IOException ex) {
 				trace.error("weaveAndDefineConceteAspects", ex);

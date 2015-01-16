@@ -8,7 +8,7 @@
  *
  * Contributors:
  *   Abraham Nevado - Lucierna	initial implementation
- *   	Just a slight variation of current DocumentParser.java from Alexandre Vasseur. 
+ *   Just a slight variation of current DocumentParser.java from Alexandre Vasseur. 
  *******************************************************************************/
 package org.aspectj.weaver.loadtime.definition;
 

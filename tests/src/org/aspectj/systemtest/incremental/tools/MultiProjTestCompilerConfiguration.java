@@ -33,17 +33,15 @@ public class MultiProjTestCompilerConfiguration implements ICompilerConfiguratio
 	private Set aspectPath = null;
 	private Map sourcePathResources = null;
 	private IOutputLocationManager outputLocationManager = null;
-	private List<String> dependants;
+	private List dependants;
 	private Map javaOptionsMap;
 	private Set<File> inpath;
 	private String encoding = null;
 	private String outjar;
-	private String processor;
-	private String processorPath;
 	private String nonstandardoptions;
-	private List<File> modifiedFiles;
-	private List<String> modifiedDirs;
-	private List<String> projectSourceFiles = new ArrayList();
+	private List modifiedFiles;
+	private List modifiedDirs;
+	private List projectSourceFiles = new ArrayList();
 	private List xmlConfigFiles = new ArrayList();
 	private String projectPath;
 
@@ -129,7 +127,7 @@ public class MultiProjTestCompilerConfiguration implements ICompilerConfiguratio
 		return xmlConfigFiles;
 	}
 
-	public List<File> getProjectSourceFilesChanged() {
+	public List getProjectSourceFilesChanged() {
 		log("ICompilerConfiguration.getProjectSourceFilesChanged()");
 		return modifiedFiles;
 	}
@@ -146,7 +144,7 @@ public class MultiProjTestCompilerConfiguration implements ICompilerConfiguratio
 
 	public void addDependancy(String projectItDependsOn) {
 		if (dependants == null) {
-			dependants = new ArrayList<String>();
+			dependants = new ArrayList();
 		}
 		dependants.add(projectItDependsOn);
 	}
@@ -166,16 +164,6 @@ public class MultiProjTestCompilerConfiguration implements ICompilerConfiguratio
 		this.outjar = outjar;
 		this.changed |= ICompilerConfiguration.OUTJAR_CHANGED;
 	}
-	
-	public void setProcessor(String processor) {
-		this.processor = processor;
-		this.changed |= ICompilerConfiguration.PROCESSOR_CHANGED;
-	}
-
-	public void setProcessorPath(String processorPath) {
-		this.processorPath = processorPath;
-		this.changed |= ICompilerConfiguration.PROCESSOR_CHANGED;
-	}
 
 	public void setJavaOptions(Map javaOptions) {
 		this.javaOptionsMap = javaOptions;
@@ -187,19 +175,19 @@ public class MultiProjTestCompilerConfiguration implements ICompilerConfiguratio
 		this.changed |= ICompilerConfiguration.NONSTANDARDOPTIONS_CHANGED;
 	}
 
-	public void setProjectSourceFiles(List<String> projectSourceFiles) {
+	public void setProjectSourceFiles(List projectSourceFiles) {
 		this.projectSourceFiles = projectSourceFiles;
 		this.changed |= ICompilerConfiguration.PROJECTSOURCEFILES_CHANGED;
 	}
 
-	public void setProjectXmlConfigFiles(List<String> xmlConfigFiles) {
+	public void setProjectXmlConfigFiles(List xmlConfigFiles) {
 		this.xmlConfigFiles = xmlConfigFiles;
 		this.changed |= ICompilerConfiguration.XMLCONFIG_CHANGED;
 	}
 
 	public void addProjectSourceFileChanged(File f) {
 		if (this.modifiedFiles == null) {
-			this.modifiedFiles = new ArrayList<File>();
+			this.modifiedFiles = new ArrayList();
 		}
 		if (f != null) {
 			modifiedFiles.add(f);
@@ -208,7 +196,7 @@ public class MultiProjTestCompilerConfiguration implements ICompilerConfiguratio
 
 	public void addClasspathEntryChanged(String f) {
 		if (this.modifiedDirs == null) {
-			this.modifiedDirs = new ArrayList<String>();
+			this.modifiedDirs = new ArrayList();
 		}
 		if (f != null) {
 			modifiedDirs.add(f);
@@ -250,14 +238,6 @@ public class MultiProjTestCompilerConfiguration implements ICompilerConfiguratio
 
 	public String getProjectEncoding() {
 		return this.encoding;
-	}
-
-	public String getProcessor() {
-		return this.processor;
-	}
-
-	public String getProcessorPath() {
-		return this.processorPath;
 	}
 
 }

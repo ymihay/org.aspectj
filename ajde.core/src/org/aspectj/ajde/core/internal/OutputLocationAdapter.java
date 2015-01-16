@@ -42,7 +42,7 @@ public class OutputLocationAdapter implements CompilationResultDestinationManage
 		return this.locationManager.getOutputLocationForResource(resource);
 	}
 
-	public List<File> getAllOutputLocations() {
+	public List getAllOutputLocations() {
 		return this.locationManager.getAllOutputLocations();
 	}
 
@@ -67,7 +67,7 @@ public class OutputLocationAdapter implements CompilationResultDestinationManage
 	 * 
 	 * @return a map from inpath entries (jars/dirs) to handle components.
 	 */
-	public Map<File,String> getInpathMap() {
+	public Map getInpathMap() {
 		return this.locationManager.getInpathMap();
 	}
 

@@ -22,7 +22,17 @@
     <target name="init"/>
 
     <target name="compile" depends="init">
+    	<!--
         <srccompile project="bcel-builder" path="bcel-builder.src.path"/>
+        -->
+    	
+    	<javac srcdir="src/" destdir="bin" source="1.5" target="1.5" includeantruntime="true"  >
+			<classpath refid="bcel-builder.src.path" />
+		</javac>
+    	
+    	<javac srcdir="verifier-src/" destdir="bin" source="1.5" target="1.5" includeantruntime="true"  >
+			<classpath refid="bcel-builder.src.path" />
+		</javac>
     </target>
 
     <target name="test:compile" depends="compile">
@@ -41,7 +51,7 @@
 
   <target name="extractAndPatch" depends="unzipSource,createPatchedSource" />
   
-	<target name="packageAndPush" depends="buildTheJars,push"/>
+	<target name="packageAndPush" depends="compile,buildTheJars,push"/>
 	
   <target name="jar" depends="pack">
       <!-- FIXME AV: someone fix this target since it is broken... looks for bcel/build.xml that does not exist -->

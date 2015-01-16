@@ -107,12 +107,12 @@ public class CompilationAndWeavingContext {
 
 	public static void reset() {
 		if (!multiThreaded) {
-			contextMap.remove();
+//			contextMap.remove(); removed by JP for 1.4 compliance
 			contextStack.clear();
 			formatterMap.clear();
 			nextTokenId = 1;
 		} else {
-			contextMap.remove();
+//			contextMap.remove(); removed by JP for 1.4 compliance
 			// TODO what about formatterMap?
 			// TODO what about nextTokenId?
 		}
@@ -174,7 +174,7 @@ public class CompilationAndWeavingContext {
 		if (!multiThreaded) {
 			return;
 		}
-		contextMap.remove();
+		contextMap.set(null);
 	}
 
 	private static Stack<ContextStackEntry> getContextStack() {

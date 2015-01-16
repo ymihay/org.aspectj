@@ -27,7 +27,7 @@ public class SimpleClassCacheTest extends TestCase {
 
 
 	private SimpleCache createCache() throws Exception {
-		return new SimpleCache(System.getProperty("java.io.tmpdir"),true);
+		return new SimpleCache(System.getProperty("java.io.tmpdir"), true, false, false);
 	}
 
 
@@ -35,7 +35,7 @@ public class SimpleClassCacheTest extends TestCase {
 		String classA = "com.generated.A";
 		SimpleCache cache = createCache();
 		
-		cache.put(classA, FAKE_BYTES_V1, FAKE_WOVEN_BYTES_V1);
+		cache.put(classA, FAKE_BYTES_V1, FAKE_WOVEN_BYTES_V1, null);
 		
 		
 		// Test the returned woven bytes are the original one
@@ -53,8 +53,8 @@ public class SimpleClassCacheTest extends TestCase {
 	public void testDifferentVersionCache() throws Exception {
 		String classA = "com.generated.A";
 		SimpleCache cache = createCache();
-		cache.put(classA, FAKE_BYTES_V1, FAKE_WOVEN_BYTES_V1);
-		cache.put(classA, FAKE_BYTES_V2, FAKE_WOVEN_BYTES_V2);
+		cache.put(classA, FAKE_BYTES_V1, FAKE_WOVEN_BYTES_V1, null);
+		cache.put(classA, FAKE_BYTES_V2, FAKE_WOVEN_BYTES_V2, null);
 		
 		// Test the returned woven bytes are the original one for v1
 		byte result[] = cache.getAndInitialize(classA, FAKE_BYTES_V1, null, null);

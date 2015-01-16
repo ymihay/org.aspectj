@@ -14,14 +14,12 @@
 package org.aspectj.weaver.patterns;
 
 import java.io.IOException;
-import java.lang.reflect.Modifier;
 import java.util.Map;
 
 import org.aspectj.util.FuzzyBoolean;
 import org.aspectj.weaver.CompressingDataOutputStream;
 import org.aspectj.weaver.ISourceContext;
 import org.aspectj.weaver.ResolvedType;
-import org.aspectj.weaver.UnresolvedType;
 import org.aspectj.weaver.VersionedDataInputStream;
 import org.aspectj.weaver.World;
 
@@ -41,7 +39,6 @@ public class TypeCategoryTypePattern extends TypePattern {
 	public static final int ANONYMOUS = 5;
 	public static final int ENUM = 6;
 	public static final int ANNOTATION = 7;
-	public static final int FINAL = 8;
 
 	private int category;
 
@@ -72,7 +69,7 @@ public class TypeCategoryTypePattern extends TypePattern {
 	}
 
 	@Override
-	public TypePattern parameterizeWith(Map<String,UnresolvedType> typeVariableMap, World w) {
+	public TypePattern parameterizeWith(Map typeVariableMap, World w) {
 		return this;
 	}
 
@@ -106,7 +103,6 @@ public class TypeCategoryTypePattern extends TypePattern {
 		writeLocation(s);
 	}
 
-	@SuppressWarnings("unused")
 	public static TypePattern read(VersionedDataInputStream s, ISourceContext context) throws IOException {
 		int version = s.readInt();
 		int category = s.readInt();
@@ -134,8 +130,6 @@ public class TypeCategoryTypePattern extends TypePattern {
 			return type.isEnum();
 		case ANNOTATION:
 			return type.isAnnotation();
-		case FINAL:
-			return Modifier.isFinal(type.getModifiers());
 		}
 		return false;
 	}

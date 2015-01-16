@@ -193,7 +193,7 @@ public class WeaverAdapter implements IClassFileProvider, IWeaveRequestor, Itera
 	 * 
 	 * @see org.aspectj.weaver.IWeaveRequestor#acceptResult(org.aspectj.weaver.bcel.UnwovenClassFile)
 	 */
-	public void acceptResult(IUnwovenClassFile result) {
+	public void acceptResult(IUnwovenClassFile result, ClassLoader loader) {
 		char[] key = result.getClassNameAsChars();
 		removeFromMap(lastReturnedResult.result().compiledTypes, key);
 		AjClassFile ajcf = new AjClassFile(key, result.getBytes());

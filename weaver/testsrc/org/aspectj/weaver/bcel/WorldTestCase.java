@@ -13,8 +13,6 @@
 package org.aspectj.weaver.bcel;
 
 import java.lang.reflect.Modifier;
-import java.util.Objects;
-import java.util.function.Consumer;
 
 import org.aspectj.weaver.Advice;
 import org.aspectj.weaver.BcweaverTests;
@@ -110,20 +108,11 @@ public class WorldTestCase extends CommonWorldTests {
 
 		modifiersTest(iter, abstractPublic | Modifier.INTERFACE);
 		fieldsTest(iter, ResolvedMember.NONE);
-		methodsTest(iter, new Member[] { 
-				MemberImpl.method(iter, 0, "hasNext", "()Z"), 
-				MemberImpl.method(iter, 0, "remove", "()V"),
-				MemberImpl.method(iter, 0, "next", "()Ljava/lang/Object;"), 
-				MemberImpl.method(iter, 0, "forEachRemaining", "(Ljava/util/function/Consumer;)V")
-//				default void forEachRemaining(Consumer<? super E> action) {
-//			        Objects.requireNonNull(action);
-//			        while (hasNext())
-//			            action.accept(next());
-//			    }
-				});
+		methodsTest(iter, new Member[] { MemberImpl.method(iter, 0, "hasNext", "()Z"), MemberImpl.method(iter, 0, "remove", "()V"),
+				MemberImpl.method(iter, 0, "next", "()Ljava/lang/Object;"), });
 		ResolvedMember remove = iter.lookupMethod(MemberImpl.method(iter, 0, "remove", "()V"));
 		assertNotNull("iterator doesn't have remove", remove);
-		modifiersTest(remove, Modifier.PUBLIC | Modifier.INTERFACE); // no longer abstract in Java8 (default instead)
+		modifiersTest(remove, abstractPublic | Modifier.INTERFACE);
 		exceptionsTest(remove, UnresolvedType.NONE);
 
 		ResolvedMember clone = iter.lookupMethod(MemberImpl.method(UnresolvedType.OBJECT, 0, "clone", "()Ljava/lang/Object;"));

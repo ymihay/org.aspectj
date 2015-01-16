@@ -51,6 +51,9 @@ public class BcelCflowCounterFieldAdder extends BcelTypeMunger {
 		// Modify the ajc$preClinit() method to initialize it.
 		// Something like: "ajc$cflowCounter$0 = new CflowCounter();"
 		LazyMethodGen clinit = gen.getAjcPreClinit(); // StaticInitializer();
+		
+		gen.forceInsertAjcPreClinit();
+		
 		InstructionList setup = new InstructionList();
 		InstructionFactory fact = gen.getFactory();
 

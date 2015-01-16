@@ -34,6 +34,8 @@ import org.aspectj.weaver.ast.Literal;
 import org.aspectj.weaver.ast.Test;
 import org.aspectj.weaver.ast.Var;
 
+// 
+
 /**
  * Corresponds to target or this pcd.
  * 
@@ -88,7 +90,7 @@ public class ThisOrTargetPointcut extends NameBindingPointcut {
 	}
 
 	@Override
-	public Pointcut parameterizeWith(Map<String,UnresolvedType> typeVariableMap, World w) {
+	public Pointcut parameterizeWith(Map typeVariableMap, World w) {
 		ThisOrTargetPointcut ret = new ThisOrTargetPointcut(isThis, typePattern.parameterizeWith(typeVariableMap, w));
 		ret.copyLocationFrom(this);
 		return ret;
@@ -157,19 +159,29 @@ public class ThisOrTargetPointcut extends NameBindingPointcut {
 		typePattern.postRead(enclosingType);
 	}
 
+	/*
+	 * (non-Javadoc)
+	 * 
+	 * @see org.aspectj.weaver.patterns.NameBindingPointcut#getBindingAnnotationTypePatterns()
+	 */
 	@Override
-	public List<BindingPattern> getBindingAnnotationTypePatterns() {
-		return Collections.emptyList();
+	public List getBindingAnnotationTypePatterns() {
+		return Collections.EMPTY_LIST;
 	}
 
+	/*
+	 * (non-Javadoc)
+	 * 
+	 * @see org.aspectj.weaver.patterns.NameBindingPointcut#getBindingTypePatterns()
+	 */
 	@Override
-	public List<BindingTypePattern> getBindingTypePatterns() {
+	public List getBindingTypePatterns() {
 		if (typePattern instanceof BindingTypePattern) {
-			List<BindingTypePattern> l = new ArrayList<BindingTypePattern>();
-			l.add((BindingTypePattern)typePattern);
+			List l = new ArrayList();
+			l.add(typePattern);
 			return l;
 		} else {
-			return Collections.emptyList();
+			return Collections.EMPTY_LIST;
 		}
 	}
 

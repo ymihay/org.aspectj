@@ -160,6 +160,8 @@ public interface Constants {
 	 */
 	public static final int MAX_CP_ENTRIES = 65535;
 	public static final int MAX_CODE_SIZE = 65536; // bytes
+//	public static final int TOLERANCE=16*1024;
+//	public static final int MAX_CODE_SIZE_WITH_TOLERANCE=MAX_CODE_SIZE-TOLERANCE;
 
 	/**
 	 * Java VM opcodes.

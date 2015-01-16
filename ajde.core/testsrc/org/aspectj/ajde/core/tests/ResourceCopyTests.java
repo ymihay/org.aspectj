@@ -108,7 +108,7 @@ public class ResourceCopyTests extends AjdeCoreTestCase {
 	}
 
 	public void testInjarsToBin() {
-		Set<File> injars = new HashSet<File>();
+		Set injars = new HashSet();
 		File injar1 = openFile(injar1Name);
 		injars.add(injar1);
 		compilerConfig.setInpath(injars);
@@ -167,7 +167,8 @@ public class ResourceCopyTests extends AjdeCoreTestCase {
 		File[] fromResources = FileUtil.listFiles(srcBase, aspectjResourceFileFilter);
 		for (int i = 0; i < fromResources.length; i++) {
 			String name = FileUtil.normalizedPath(fromResources[i], srcBase);
-			if (!name.startsWith("CVS/") && (-1 == name.indexOf("/CVS/")) && !name.endsWith("/CVS")) {
+			boolean isSVNRelated = name.indexOf(".svn") != -1;
+			if (!isSVNRelated && !name.startsWith("CVS/") && (-1 == name.indexOf("/CVS/")) && !name.endsWith("/CVS")) {
 				resources.add(name);
 			}
 		}
@@ -177,7 +178,8 @@ public class ResourceCopyTests extends AjdeCoreTestCase {
 		public boolean accept(File pathname) {
 			String name = pathname.getName().toLowerCase();
 			boolean isCVSRelated = name.indexOf("/cvs/") != -1;
-			return (!isCVSRelated && !name.endsWith(".class") && !name.endsWith(".java") && !name.endsWith(".aj"));
+			boolean isSVNRelated = pathname.getAbsolutePath().indexOf(".svn") != -1;
+			return (!isCVSRelated && !isSVNRelated && !name.endsWith(".class") && !name.endsWith(".java") && !name.endsWith(".aj"));
 		}
 	};
 

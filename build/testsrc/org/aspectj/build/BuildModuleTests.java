@@ -293,7 +293,7 @@ public class BuildModuleTests extends TestCase {
                 File file = files[j];
                 if (file.isDirectory()) {
                     String name = file.getName();
-                    if (!("CVS".equals(name))) {
+                    if (!("CVS".equals(name)) && !name.contains("svn")) {
                         unknownFiles(file, results);
                     }
                 } else {

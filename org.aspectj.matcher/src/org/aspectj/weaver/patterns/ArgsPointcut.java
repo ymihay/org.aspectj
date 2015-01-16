@@ -118,16 +118,26 @@ public class ArgsPointcut extends NameBindingPointcut {
 		return argumentsToMatchAgainst;
 	}
 
-	public List<BindingPattern> getBindingAnnotationTypePatterns() {
-		return Collections.emptyList();
+	/*
+	 * (non-Javadoc)
+	 * 
+	 * @see org.aspectj.weaver.patterns.NameBindingPointcut#getBindingAnnotationTypePatterns()
+	 */
+	public List getBindingAnnotationTypePatterns() {
+		return Collections.EMPTY_LIST;
 	}
 
-	public List<BindingTypePattern> getBindingTypePatterns() {
-		List<BindingTypePattern> l = new ArrayList<BindingTypePattern>();
+	/*
+	 * (non-Javadoc)
+	 * 
+	 * @see org.aspectj.weaver.patterns.NameBindingPointcut#getBindingTypePatterns()
+	 */
+	public List getBindingTypePatterns() {
+		List l = new ArrayList();
 		TypePattern[] pats = arguments.getTypePatterns();
 		for (int i = 0; i < pats.length; i++) {
 			if (pats[i] instanceof BindingTypePattern) {
-				l.add((BindingTypePattern)pats[i]);
+				l.add(pats[i]);
 			}
 		}
 		return l;

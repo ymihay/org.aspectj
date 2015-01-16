@@ -113,7 +113,7 @@ public class WildAnnotationTypePattern extends AnnotationTypePattern {
 							break;
 						}
 					} else if (t.isPrimitiveType()) {
-						if (t.getSignature().equals("I")) {
+						if (t.getSignature() == "I") {
 							try {
 								int value = Integer.parseInt(v);
 								replacementValues.put(k, Integer.toString(value));
@@ -124,7 +124,7 @@ public class WildAnnotationTypePattern extends AnnotationTypePattern {
 										getSourceLocation());
 								scope.getWorld().getMessageHandler().handleMessage(m);
 							}
-						} else if (t.getSignature().equals("F")) {
+						} else if (t.getSignature() == "F") {
 							try {
 								float value = Float.parseFloat(v);
 								replacementValues.put(k, Float.toString(value));
@@ -136,7 +136,7 @@ public class WildAnnotationTypePattern extends AnnotationTypePattern {
 								scope.getWorld().getMessageHandler().handleMessage(m);
 							}
 
-						} else if (t.getSignature().equals("Z")) {
+						} else if (t.getSignature() == "Z") {
 							if (v.equalsIgnoreCase("true") || v.equalsIgnoreCase("false")) {
 								// is it ok !
 							} else {
@@ -145,7 +145,7 @@ public class WildAnnotationTypePattern extends AnnotationTypePattern {
 										getSourceLocation());
 								scope.getWorld().getMessageHandler().handleMessage(m);
 							}
-						} else if (t.getSignature().equals("S")) {
+						} else if (t.getSignature() == "S") {
 							try {
 								short value = Short.parseShort(v);
 								replacementValues.put(k, Short.toString(value));
@@ -156,7 +156,7 @@ public class WildAnnotationTypePattern extends AnnotationTypePattern {
 										getSourceLocation());
 								scope.getWorld().getMessageHandler().handleMessage(m);
 							}
-						} else if (t.getSignature().equals("J")) {
+						} else if (t.getSignature() == "J") {
 							try {
 								replacementValues.put(k, Long.toString(Long.parseLong(v)));
 								break;
@@ -166,7 +166,7 @@ public class WildAnnotationTypePattern extends AnnotationTypePattern {
 										getSourceLocation());
 								scope.getWorld().getMessageHandler().handleMessage(m);
 							}
-						} else if (t.getSignature().equals("D")) {
+						} else if (t.getSignature() == "D") {
 							try {
 								replacementValues.put(k, Double.toString(Double.parseDouble(v)));
 								break;
@@ -176,7 +176,7 @@ public class WildAnnotationTypePattern extends AnnotationTypePattern {
 										getSourceLocation());
 								scope.getWorld().getMessageHandler().handleMessage(m);
 							}
-						} else if (t.getSignature().equals("B")) {
+						} else if (t.getSignature() == "B") {
 							try {
 								replacementValues.put(k, Byte.toString(Byte.parseByte(v)));
 								break;
@@ -186,7 +186,7 @@ public class WildAnnotationTypePattern extends AnnotationTypePattern {
 										getSourceLocation());
 								scope.getWorld().getMessageHandler().handleMessage(m);
 							}
-						} else if (t.getSignature().equals("C")) {
+						} else if (t.getSignature() == "C") {
 							if (v.length() != 3) { // '?'
 								IMessage m = MessageUtil.error(
 										WeaverMessages.format(WeaverMessages.INVALID_ANNOTATION_VALUE, v, "char"),

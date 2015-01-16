@@ -101,6 +101,12 @@ public class MultiProjectIncrementalTests extends AbstractMultiProjectIncrementa
 		runMethod(p, "demo.ConverterTest", "run");
 	}
 
+	private void runMethod(String projectName, String classname, String methodname) throws Exception {
+		File f = getProjectOutputRelativePath(projectName, "");
+		ClassLoader cl = new URLClassLoader(new URL[] { f.toURI().toURL() });
+		Class<?> clazz = Class.forName(classname, false, cl);
+		clazz.getDeclaredMethod(methodname).invoke(null);
+	}
 
 	public void testIncrementalITDInners4() throws Exception {
 		String p = "prInner4";
@@ -1899,7 +1905,7 @@ public class MultiProjectIncrementalTests extends AbstractMultiProjectIncrementa
 		checkCompileWeaveCount("P1", 5, 3); // we compile X and A (the delta)
 		// find out that
 		// an aspect has changed, go back to the source
-		// and compile X,A,C, then weave the all.
+		// and compile X,A,C, then weave them all.
 		build("P1");
 		long timeTakenForSimpleIncBuild = getTimeTakenForBuild("P1");
 		// I don't think this test will have timing issues as the times should
@@ -1909,7 +1915,6 @@ public class MultiProjectIncrementalTests extends AbstractMultiProjectIncrementa
 				+ "ms  second=" + timeTakenForSimpleIncBuild + "ms", timeTakenForSimpleIncBuild < timeTakenForFullBuildAndWeave);
 	}
 
-	@SuppressWarnings("rawtypes")
 	public void testBuildingTwoProjectsInTurns() {
 		initialiseProject("P1");
 		initialiseProject("P2");
@@ -1920,7 +1925,7 @@ public class MultiProjectIncrementalTests extends AbstractMultiProjectIncrementa
 		build("P2");
 		checkWasntFullBuild();
 	}
-	
+
 	public void testBuildingBrokenCode_pr240360() {
 		initialiseProject("pr240360");
 		// configureNonStandardCompileOptions("pr240360","-proceedOnError");
@@ -3570,19 +3575,6 @@ public class MultiProjectIncrementalTests extends AbstractMultiProjectIncrementa
 		build("PR154054");
 		checkWasntFullBuild();
 	}
-	
-	public void testIncrementalBuildAdviceChange_456801() throws Exception {
-		initialiseProject("456801");
-		build("456801");
-		String output = runMethod("456801", "Code", "run");
-		assertEquals("advice runnning\nrun() running\n",output);
-		alter("456801", "inc1");
-		build("456801");
-		output = runMethod("456801", "Code", "run");
-		assertEquals("advice running\nrun() running\n",output);
-		checkCompileWeaveCount("456801", 1, 1);
-		checkWasntFullBuild();
-	}
 
 	// change exception type in around advice, does it notice?
 	public void testShouldFullBuildOnExceptionChange_pr154054() {
@@ -4031,6 +4023,11 @@ public class MultiProjectIncrementalTests extends AbstractMultiProjectIncrementa
 		if (VERBOSE) {
 			System.out.println(msg);
 		}
+	}
+
+	protected File getProjectOutputRelativePath(String p, String filename) {
+		File projDir = new File(getWorkingDir(), p);
+		return new File(projDir, "bin" + File.separator + filename);
 	}
 
 }

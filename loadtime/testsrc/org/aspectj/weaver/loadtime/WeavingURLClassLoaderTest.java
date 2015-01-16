@@ -217,9 +217,10 @@ public class WeavingURLClassLoaderTest extends TestCase {
 	public void testWeavingITD() {
 		URL classes = FileUtil.getFileURL(new File(CLASSES_JAR));
 		URL aspectjrt = FileUtil.getFileURL(new File(ASPECTJRT));
-		URL aspects = FileUtil.getFileURL(new File(ITD_ASPECTS));
-		URL[] classURLs = new URL[] { aspects, classes, aspectjrt };
-		URL[] aspectURLs = new URL[] { aspects };
+		URL aspectsITD = FileUtil.getFileURL(new File(ITD_ASPECTS));
+		URL aspects = FileUtil.getFileURL(new File(PER_ASPECTS));
+		URL[] classURLs = new URL[] { aspects, aspectsITD, classes, aspectjrt };
+		URL[] aspectURLs = new URL[] { aspects, aspectsITD };
 		WeavingURLClassLoader loader = new WeavingURLClassLoader(classURLs, aspectURLs, getClass().getClassLoader());
 
 		try {

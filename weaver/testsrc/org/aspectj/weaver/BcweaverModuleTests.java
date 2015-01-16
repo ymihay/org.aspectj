@@ -17,7 +17,7 @@ import junit.framework.Test;
 import junit.framework.TestCase;
 import junit.framework.TestSuite;
 
-import org.aspectj.weaver.tools.ToolsTests;
+//import org.aspectj.weaver.tools.ToolsTests;
 import org.aspectj.weaver.tools.cache.CacheTests;
 
 public class BcweaverModuleTests extends TestCase {
@@ -29,7 +29,7 @@ public class BcweaverModuleTests extends TestCase {
 		suite.addTest(org.aspectj.weaver.patterns.bcel.BcelPatternsTests.suite());
 		suite.addTestSuite(LocaleTest.class);
 		suite.addTestSuite(GenericSignatureParserTest.class);
-		suite.addTest(ToolsTests.suite());
+//		suite.addTest(ToolsTests.suite());
         suite.addTest(CacheTests.suite());
 		return suite;
 	}

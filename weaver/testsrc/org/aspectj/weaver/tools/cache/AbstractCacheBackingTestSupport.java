@@ -147,7 +147,7 @@ public abstract class AbstractCacheBackingTestSupport extends TestCase {
     		}
     		
     		String	name=file.getName();
-    		if ("bin".equals(name) || "src".equals(name)) {
+    		if ("bin".equals(name) || "src".equals(name) || "jars".equals(name)) {
     			File	parent=file.getParentFile();
     			return new File(parent, "target");
     		}

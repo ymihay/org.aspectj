@@ -179,21 +179,36 @@ public class ArgsAnnotationPointcut extends NameBindingPointcut {
 		return ret;
 	}
 
-	public List<BindingPattern> getBindingAnnotationTypePatterns() {
-		List<BindingPattern> l = new ArrayList<BindingPattern>();
+	/*
+	 * (non-Javadoc)
+	 * 
+	 * @see org.aspectj.weaver.patterns.NameBindingPointcut#getBindingAnnotationTypePatterns()
+	 */
+	public List getBindingAnnotationTypePatterns() {
+		List l = new ArrayList();
 		AnnotationTypePattern[] pats = arguments.getAnnotationPatterns();
 		for (int i = 0; i < pats.length; i++) {
 			if (pats[i] instanceof BindingAnnotationTypePattern) {
-				l.add((BindingPattern)pats[i]);
+				l.add(pats[i]);
 			}
 		}
 		return l;
 	}
 
-	public List<BindingTypePattern> getBindingTypePatterns() {
-		return Collections.emptyList();
+	/*
+	 * (non-Javadoc)
+	 * 
+	 * @see org.aspectj.weaver.patterns.NameBindingPointcut#getBindingTypePatterns()
+	 */
+	public List getBindingTypePatterns() {
+		return Collections.EMPTY_LIST;
 	}
 
+	/*
+	 * (non-Javadoc)
+	 * 
+	 * @see org.aspectj.weaver.patterns.PatternNode#write(java.io.DataOutputStream)
+	 */
 	public void write(CompressingDataOutputStream s) throws IOException {
 		s.writeByte(Pointcut.ATARGS);
 		arguments.write(s);

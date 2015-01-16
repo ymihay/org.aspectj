@@ -94,7 +94,7 @@ public class TestCompilerConfiguration implements ICompilerConfiguration {
 		return projectSourceFiles;
 	}
 
-	public List<File> getProjectSourceFilesChanged() {
+	public List getProjectSourceFilesChanged() {
 		return null;
 	}
 
@@ -139,7 +139,7 @@ public class TestCompilerConfiguration implements ICompilerConfiguration {
 		this.outjar = outjar;
 	}
 
-	public void setJavaOptions(Map<String,String> javaOptions) {
+	public void setJavaOptions(Map javaOptions) {
 		this.javaOptions = javaOptions;
 	}
 
@@ -163,19 +163,11 @@ public class TestCompilerConfiguration implements ICompilerConfiguration {
 		return ICompilerConfiguration.EVERYTHING;
 	}
 
-	public List<String> getClasspathElementsWithModifiedContents() {
+	public List getClasspathElementsWithModifiedContents() {
 		return null;
 	}
 
 	public String getProjectEncoding() {
-		return null;
-	}
-
-	public String getProcessor() {
-		return null;
-	}
-
-	public String getProcessorPath() {
 		return null;
 	}
 

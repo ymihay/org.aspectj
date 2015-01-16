@@ -28,6 +28,7 @@ import org.aspectj.bridge.MessageUtil;
 import org.aspectj.util.PartialOrder;
 import org.aspectj.util.TypeSafeEnum;
 import org.aspectj.weaver.ast.Var;
+import org.aspectj.weaver.patterns.Pointcut;
 
 /*
  * The superclass of anything representing a the shadow of a join point.  A shadow represents
@@ -48,7 +49,9 @@ public abstract class Shadow {
 	protected List<ShadowMunger> mungers = Collections.emptyList();
 
 	public int shadowId = nextShadowID++; // every time we build a shadow, it gets a new id
+	
 
+	
 	// ----
 	protected Shadow(Kind kind, Member signature, Shadow enclosingShadow) {
 		this.kind = kind;

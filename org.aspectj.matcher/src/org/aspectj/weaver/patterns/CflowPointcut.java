@@ -40,7 +40,6 @@ import org.aspectj.weaver.VersionedDataInputStream;
 import org.aspectj.weaver.WeaverMessages;
 import org.aspectj.weaver.World;
 import org.aspectj.weaver.ast.Test;
-import org.aspectj.weaver.patterns.ConcreteCflowPointcut.Slot;
 
 public class CflowPointcut extends Pointcut {
 	private final Pointcut entry; // The pointcut inside the cflow() that
@@ -104,7 +103,7 @@ public class CflowPointcut extends Pointcut {
 		return ret;
 	}
 
-	public Pointcut parameterizeWith(Map<String,UnresolvedType> typeVariableMap, World w) {
+	public Pointcut parameterizeWith(Map typeVariableMap, World w) {
 		CflowPointcut ret = new CflowPointcut(entry.parameterizeWith(typeVariableMap, w), isBelow, freeVars);
 		ret.copyLocationFrom(this);
 		return ret;
@@ -251,7 +250,7 @@ public class CflowPointcut extends Pointcut {
 			return ret;
 		} else {
 
-			List<Slot> slots = new ArrayList<Slot>();
+			List slots = new ArrayList();
 
 			for (int i = 0, len = freeVars.length; i < len; i++) {
 				int freeVar = freeVars[i];
