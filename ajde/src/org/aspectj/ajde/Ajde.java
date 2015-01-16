@@ -51,7 +51,7 @@ import org.aspectj.util.Reflection;
  * This also defines the factory for getting new AjCompiler instances.
  * 
  * @author Mik Kersten
- * @author Andy Clement   
+ * @author Andy Clement
  */
 public class Ajde {
 
