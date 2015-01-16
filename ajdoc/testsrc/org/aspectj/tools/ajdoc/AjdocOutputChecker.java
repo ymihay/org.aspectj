@@ -50,18 +50,20 @@ public class AjdocOutputChecker {
 	}
 
 	/**
-	 * Returns those strings from the given array which aren't in the html file.
+	 * Returns those strings from the given array which aren't in the
+	 * html file
 	 * 
 	 * @param htmlFile
 	 * @param an array of requiredStrings
 	 * @return a List of those strings not found
 	 * @throws Exception
 	 */	
-	public static List<String> getMissingStringsInFile(File htmlFile, String[] requiredStrings) throws Exception {
-		List<String> missingStrings = new ArrayList<String>();
+	public static List /*String*/ getMissingStringsInFile(File htmlFile,
+			String[] requiredStrings) throws Exception {
+		List missingStrings = new ArrayList();
 		for (int i = 0; i < requiredStrings.length; i++) {
 			String string = requiredStrings[i];
-			if (!containsString(htmlFile, string)) {
+			if (!containsString(htmlFile,string)) {
 				missingStrings.add(string);
 			}
 		}

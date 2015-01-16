@@ -281,8 +281,8 @@ public class WeavingAdaptor implements IMessageContext {
 	 * @return the woven bytes
 	 * @exception IOException weave failed
 	 */
-	public byte[] weaveClass(String name, byte[] bytes) throws IOException {
-		return weaveClass(name, bytes, false);
+	public byte[] weaveClass(String name, byte[] bytes, ClassLoader loader) throws IOException {
+		return weaveClass(name, bytes, false,loader);
 	}
 
 	// Track if the weaver is already running on this thread - don't allow re-entrant calls
@@ -292,6 +292,7 @@ public class WeavingAdaptor implements IMessageContext {
 			return Boolean.FALSE;
 		}
 	};
+	private boolean redefine;
 
 	/**
 	 * Weave a class using aspects previously supplied to the adaptor.
@@ -299,10 +300,11 @@ public class WeavingAdaptor implements IMessageContext {
 	 * @param name the name of the class
 	 * @param bytes the class bytes
 	 * @param mustWeave if true then this class *must* get woven (used for concrete aspects generated from XML)
+	 * @param loader 
 	 * @return the woven bytes
 	 * @exception IOException weave failed
 	 */
-	public byte[] weaveClass(String name, byte[] bytes, boolean mustWeave) throws IOException {
+	public byte[] weaveClass(String name, byte[] bytes, boolean mustWeave, ClassLoader loader) throws IOException {
 		if (trace == null) {
 			// Pr231945: we are likely to be under tomcat and ENABLE_CLEAR_REFERENCES hasn't been set
 			System.err
@@ -360,7 +362,7 @@ public class WeavingAdaptor implements IMessageContext {
 						if (debugOn) {
 							debug("weaving '" + name + "'");
 						}
-						bytes = getWovenBytes(name, bytes);
+						bytes = getWovenBytes(name, bytes,loader);
 						// temporarily out - searching for @Aspect annotated types is a slow thing to do - we should
 						// expect the user to name them if they want them woven - just like code style
 						// } else if (shouldWeaveAnnotationStyleAspect(name, bytes)) {
@@ -519,12 +521,14 @@ public class WeavingAdaptor implements IMessageContext {
 	 * 
 	 * @param name the name of the class being woven
 	 * @param bytes the bytes that define the class
+	 * @param loader 
 	 * @return byte[] the woven bytes for the class
 	 * @throws IOException
 	 */
-	private byte[] getWovenBytes(String name, byte[] bytes) throws IOException {
+	private byte[] getWovenBytes(String name, byte[] bytes, ClassLoader loader) throws IOException {
 		WeavingClassFileProvider wcp = new WeavingClassFileProvider(name, bytes);
-		weaver.weave(wcp);
+		weaver.setRedefine(this.redefine);
+		weaver.weave(wcp,loader);
 		return wcp.getBytes();
 	}
 
@@ -537,10 +541,10 @@ public class WeavingAdaptor implements IMessageContext {
 	 * @return byte[] the woven bytes for the class
 	 * @throws IOException
 	 */
-	private byte[] getAtAspectJAspectBytes(String name, byte[] bytes) throws IOException {
+	private byte[] getAtAspectJAspectBytes(String name, byte[] bytes, ClassLoader loader) throws IOException {
 		WeavingClassFileProvider wcp = new WeavingClassFileProvider(name, bytes);
 		wcp.setApplyAtAspectJMungersOnly();
-		weaver.weave(wcp);
+		weaver.weave(wcp,loader);
 		return wcp.getBytes();
 	}
 
@@ -873,7 +877,7 @@ public class WeavingAdaptor implements IMessageContext {
 		public IWeaveRequestor getRequestor() {
 			return new IWeaveRequestor() {
 
-				public void acceptResult(IUnwovenClassFile result) {
+				public void acceptResult(IUnwovenClassFile result, ClassLoader loader) {
 					if (wovenClass == null) {
 						wovenClass = result;
 						String name = result.getClassName();
@@ -887,8 +891,14 @@ public class WeavingAdaptor implements IMessageContext {
 
 						if (SimpleCacheFactory.isEnabled()) {
 							SimpleCache lacache=SimpleCacheFactory.createSimpleCache();
-							lacache.put(result.getClassName(), wovenClass.getBytes(), result.getBytes());
-							lacache.addGeneratedClassesNames(wovenClass.getClassName(), wovenClass.getBytes(), result.getClassName());
+							
+							if (loader == null){//added by JP.loader 
+								System.err.println("Received classloader null when generating generated classes. Stack;");
+								Exception exception = new Exception("Null classloader received");
+								exception.printStackTrace();
+							}
+							lacache.put(result.getClassName(), wovenClass.getBytes(), result.getBytes(), loader);
+							lacache.addGeneratedClassesNames(wovenClass.getClassName(), wovenClass.getBytes(), result.getClassName(), loader);
 						}
 
 						generatedClasses.put(className, result);
@@ -923,5 +933,13 @@ public class WeavingAdaptor implements IMessageContext {
 
 	public void setActiveProtectionDomain(ProtectionDomain protectionDomain) {
 		activeProtectionDomain = protectionDomain;
+	}
+
+	public void setRedefine(boolean redefine) {
+		this.redefine = redefine;
+	}
+	
+	public boolean isRedefine(){
+		return redefine;
 	}
 }

@@ -98,7 +98,8 @@ public class BasicCommandTestCase extends CommandTestCase {
 		args.add(getSandboxName());
 		
 		args.add("-classpath");
-		args.add(getRuntimeClasspath() + File.pathSeparator +			"../lib/junit/junit.jar;../testing-client/bin");
+		args.add(getRuntimeClasspath() + File.pathSeparator +
+			"../lib/junit/junit.jar;../testing-client/bin");
 		args.add("-Xlint:error");
 		args.add(AjdtAjcTests.TESTDATA_PATH + "/src1/Xlint.java");
 		
@@ -111,7 +112,8 @@ public class BasicCommandTestCase extends CommandTestCase {
 		args.add(getSandboxName());
 		
 		args.add("-classpath");
-		args.add(getRuntimeClasspath() + File.pathSeparator +			"../lib/junit/junit.jar;../testing-client/bin;not_found_anywhere.jar");
+		args.add(getRuntimeClasspath() + File.pathSeparator +
+			"../lib/junit/junit.jar;../testing-client/bin;not_found_anywhere.jar");
 		args.add(AjdtAjcTests.TESTDATA_PATH + "/src1/ThisAndModifiers.java");
 		
 		ICommand command = new AjdtCommand();

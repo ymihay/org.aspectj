@@ -194,7 +194,7 @@ public abstract class CommonWorldTests extends TestCase {
 	}
 
 	protected void mungersTest(ResolvedType ty, ShadowMunger[] x) {
-		List<ShadowMunger> l = ty.getDeclaredShadowMungers();
+		List l = (List) ty.getDeclaredShadowMungers();
 		ShadowMunger[] array = (ShadowMunger[]) l.toArray(new ShadowMunger[l.size()]);
 		TestUtil.assertSetEquals(ty + " mungers:", x, array);
 	}

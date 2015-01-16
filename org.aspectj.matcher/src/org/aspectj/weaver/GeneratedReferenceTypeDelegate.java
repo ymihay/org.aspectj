@@ -91,10 +91,6 @@ public class GeneratedReferenceTypeDelegate extends AbstractReferenceTypeDelegat
 	public AnnotationAJ[] getAnnotations() {
 		throw new UnsupportedOperationException("Not supported for GeneratedReferenceTypeDelegate");
 	}
-	
-	public boolean hasAnnotations() {
-		throw new UnsupportedOperationException("Not supported for GeneratedReferenceTypeDelegate");
-	}
 
 	public ResolvedType[] getAnnotationTypes() {
 		throw new UnsupportedOperationException("Not supported for GeneratedReferenceTypeDelegate");

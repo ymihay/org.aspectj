@@ -100,12 +100,16 @@ public class Dump {
 		}
 		return fileName;
 	}
-
+	
 	public static String dumpWithException(Throwable th) {
-		return dumpWithException(savedMessageHolder, th);
+		return dumpWithException(th, null);
 	}
 
-	public static String dumpWithException(IMessageHolder messageHolder, Throwable th) {
+	public static String dumpWithException(Throwable th, String className) {
+		return dumpWithException(savedMessageHolder, th, className);
+	}
+
+	public static String dumpWithException(IMessageHolder messageHolder, Throwable th, String className) {
 		if (!getDumpOnException()) {
 			return null;
 		}
@@ -118,6 +122,12 @@ public class Dump {
 		try {
 			dump = new Dump(th.getClass().getName());
 			fileName = dump.getFileName();
+			
+			if (className == null){
+				className = "No Info";
+			}
+			dump.dumpClassNameInfo(className);
+			
 			dump.dumpException(messageHolder, th);
 		} finally {
 			if (dump != null) {
@@ -326,6 +336,11 @@ public class Dump {
 	// }
 	// }
 	// }
+	
+	private void dumpClassNameInfo(String className) {
+		println("---- Class Name Information ---");
+		println(className);
+	}
 
 	private void dumpException(IMessageHolder messageHolder, Throwable th) {
 		println("---- Exception Information ---");

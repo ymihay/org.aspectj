@@ -370,14 +370,6 @@ class MyCompilerConfig implements ICompilerConfiguration {
 		return null;
 	}
 
-	public String getProcessor() {
-		return null;
-	}
-
-	public String getProcessorPath() {
-		return null;
-	}
-
 }
 
 class MyOutputLocationManager implements IOutputLocationManager {

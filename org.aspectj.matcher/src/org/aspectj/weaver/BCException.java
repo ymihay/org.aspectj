@@ -20,7 +20,6 @@ import org.aspectj.bridge.context.CompilationAndWeavingContext;
 /**
  * Exception to use inside the bcweaver.
  */
-@SuppressWarnings("serial")
 public class BCException extends RuntimeException {
 	Throwable thrown;
 

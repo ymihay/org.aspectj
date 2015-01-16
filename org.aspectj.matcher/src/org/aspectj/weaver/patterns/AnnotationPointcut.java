@@ -254,13 +254,13 @@ public class AnnotationPointcut extends NameBindingPointcut {
 	 * 
 	 * @see org.aspectj.weaver.patterns.NameBindingPointcut#getBindingAnnotationTypePatterns()
 	 */
-	public List<BindingPattern> getBindingAnnotationTypePatterns() {
+	public List getBindingAnnotationTypePatterns() {
 		if (annotationTypePattern instanceof BindingPattern) { // BindingAnnotationTypePattern) {
-			List<BindingPattern> l = new ArrayList<BindingPattern>();
-			l.add((BindingPattern)annotationTypePattern);
+			List l = new ArrayList();
+			l.add(annotationTypePattern);
 			return l;
 		} else {
-			return Collections.emptyList();
+			return Collections.EMPTY_LIST;
 		}
 	}
 
@@ -269,8 +269,8 @@ public class AnnotationPointcut extends NameBindingPointcut {
 	 * 
 	 * @see org.aspectj.weaver.patterns.NameBindingPointcut#getBindingTypePatterns()
 	 */
-	public List<BindingTypePattern> getBindingTypePatterns() {
-		return Collections.emptyList();
+	public List getBindingTypePatterns() {
+		return Collections.EMPTY_LIST;
 	}
 
 	/*

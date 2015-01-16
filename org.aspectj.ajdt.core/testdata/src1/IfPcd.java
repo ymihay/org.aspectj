@@ -11,10 +11,9 @@ public aspect IfPcd {
 		System.err.println("!has this: "+ thisJoinPoint.getThis());
 	}
 	
-	before(): execution(void IfPcd.main(..)) && if(thisJoinPointStaticPart.getKind() == "method-execution") {
+    before(): execution(void IfPcd.main(..)) && if(thisJoinPoint.getStaticPart().getKind() == "method-execution") {
 		System.err.println("is method-exec");
 	}
-	
 	
 	before(Object o): execution(void IfPcd.main(..)) && args(o) && if(o != null) {
 		System.err.println("got: " + o);

@@ -187,7 +187,7 @@ public class AjdeCoreBuildManager {
 		return formattedOptions.toString();
 	}
 
-	private String formatMap(Map<String,? extends Object> options) {
+	private String formatMap(Map options) {
 		if (options == null) {
 			return "<default>";
 		}
@@ -225,17 +225,6 @@ public class AjdeCoreBuildManager {
 			List<String> l = compilerConfig.getProjectSourceFiles();
 			if (l == null) {
 				return null;
-			}
-			// If the processor options are specified build the command line options for the JDT compiler to see
-			String processor = compilerConfig.getProcessor();
-			if (processor != null && processor.length() != 0) {
-				l.add("-processor");
-				l.add(processor);
-			}
-			String processorPath = compilerConfig.getProcessorPath();
-			if (processorPath != null && processorPath.length() != 0) {
-				l.add("-processorpath");
-				l.add(processorPath);
 			}
 			List<String> xmlfiles = compilerConfig.getProjectXmlConfigFiles();
 			if (xmlfiles != null && !xmlfiles.isEmpty()) {
@@ -309,7 +298,7 @@ public class AjdeCoreBuildManager {
 		mergeInto(config.getAspectpath(), compilerConfig.getAspectPath());
 
 		// Process the JAVA OPTIONS MAP
-		Map<String,String> jom = compilerConfig.getJavaOptionsMap();
+		Map jom = compilerConfig.getJavaOptionsMap();
 		if (jom != null) {
 			String version = (String) jom.get(CompilerOptions.OPTION_Compliance);
 			if (version != null && !version.equals(CompilerOptions.VERSION_1_4)) {
@@ -342,8 +331,6 @@ public class AjdeCoreBuildManager {
 		config.setProceedOnError(true);
 
 		config.setProjectEncoding(compilerConfig.getProjectEncoding());
-		config.setProcessor(compilerConfig.getProcessor());
-		config.setProcessorPath(compilerConfig.getProcessorPath());
 		return config;
 	}
 

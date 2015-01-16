@@ -19,7 +19,6 @@ import org.aspectj.weaver.CompressingDataOutputStream;
 import org.aspectj.weaver.ISourceContext;
 import org.aspectj.weaver.IntMap;
 import org.aspectj.weaver.ResolvedType;
-import org.aspectj.weaver.UnresolvedType;
 import org.aspectj.weaver.VersionedDataInputStream;
 import org.aspectj.weaver.World;
 
@@ -51,7 +50,7 @@ public abstract class AnnotationTypePattern extends PatternNode {
 
 	public abstract void resolve(World world);
 
-	public abstract AnnotationTypePattern parameterizeWith(Map<String,UnresolvedType> typeVariableMap, World w);
+	public abstract AnnotationTypePattern parameterizeWith(Map/* name -> ResolvedType */typeVariableMap, World w);
 
 	public boolean isAny() {
 		return false;

@@ -194,10 +194,6 @@ public class ReflectionBasedReferenceTypeDelegate implements ReferenceTypeDelega
 		// no annotations in Java 1.4
 		return AnnotationAJ.EMPTY_ARRAY;
 	}
-	
-	public boolean hasAnnotations() {
-		return false;
-	}
 
 	/*
 	 * (non-Javadoc)

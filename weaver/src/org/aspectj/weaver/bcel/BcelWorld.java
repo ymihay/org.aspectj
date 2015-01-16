@@ -421,8 +421,25 @@ public class BcelWorld extends World implements Repository {
 				}
 				return jc;
 			} catch (ClassNotFoundException e) {
-				if (trace.isTraceEnabled()) {
-					trace.error("Unable to find class '" + name + "' in repository", e);
+				if (!(name.contains("$$anon") || name.contains("$$less"))){ //$$anon and $$less are internal compilation clases from scala
+					/*special case for scala code. if we are searching for an internal trait we have to add $ at this point. 
+					For example: Class1$Trait2$Class2 in this point come as Class1$Trait2 and the physical file is Class1$Trait2$.class*/
+					try {
+						JavaClass jc = delegate.loadClass(name+"$");
+						if (trace.isTraceEnabled()) {
+							trace.event("lookupJavaClass", this, new Object[] { name, jc });
+						}
+						return jc;
+					} catch (ClassNotFoundException e1) {
+						if (name.contains("scala.") || name.contains("scalax.")){//impossible to find some internal compilation clases. hide errors.not important
+							//trace.info("Unable to find class '" + name + "' in repository", e); not log
+						}
+						else if (trace.isTraceEnabled()) {
+							trace.error("Unable to find class '" + name + "' in repository", e);
+						}
+					}
+					
+					
 				}
 				return null;
 			}
@@ -1016,52 +1033,11 @@ public class BcelWorld extends World implements Repository {
 
 	@Override
 	public boolean hasUnsatisfiedDependency(ResolvedType aspectType) {
-		String aspectName = aspectType.getName();
-
-		if (aspectType.hasAnnotations()) {
-			AnnotationAJ[] annos = aspectType.getAnnotations();
-			for (AnnotationAJ anno: annos) {
-				if (anno.getTypeName().equals("org.aspectj.lang.annotation.RequiredTypes")) {
-					String values = anno.getStringFormOfValue("value"); // Example: "[A,org.foo.Bar]"
-					if (values != null && values.length() > 2) {
-						values = values.substring(1,values.length()-1);
-						StringTokenizer tokenizer = new StringTokenizer(values,",");
-						boolean anythingMissing = false;
-						while (tokenizer.hasMoreElements()) {
-							String requiredTypeName = tokenizer.nextToken();
-							ResolvedType rt = resolve(UnresolvedType.forName(requiredTypeName));
-							if (rt.isMissing()) {
-								if (!getMessageHandler().isIgnoring(IMessage.INFO)) {
-									getMessageHandler().handleMessage(
-											MessageUtil.info("deactivating aspect '" + aspectName + "' as it requires type '"
-													+ requiredTypeName + "' which cannot be found on the classpath"));
-								}
-								anythingMissing = true;
-								if (aspectRequiredTypes == null) {
-									aspectRequiredTypes = new HashMap<String,String>();
-								}
-								// Record that it has an invalid type reference
-								aspectRequiredTypes.put(aspectName,requiredTypeName);
-							}
-						}				
-						if (anythingMissing) {
-							return true;
-						}
-						else {
-							return false;
-						}
-					}
-					else {
-						// no value specified for annotation
-						return false;
-					}
-				}
-			}
-		}
 		if (aspectRequiredTypes == null) {
 			// no aspects require anything, so there can be no unsatisfied dependencies
 			return false;
 		}
+		String aspectName = aspectType.getName();
 		if (!aspectRequiredTypesProcessed.contains(aspectName)) {
 			String requiredTypeName = aspectRequiredTypes.get(aspectName);
 			if (requiredTypeName==null) {
@@ -1094,7 +1070,7 @@ public class BcelWorld extends World implements Repository {
 		if (aspectRequiredTypes == null) {
 			aspectRequiredTypes = new HashMap<String, String>();
 		}
-		aspectRequiredTypes.put(aspectClassName,requiredType);
+		aspectRequiredTypes.put(aspectClassName, requiredType);
 	}
 
 	/**

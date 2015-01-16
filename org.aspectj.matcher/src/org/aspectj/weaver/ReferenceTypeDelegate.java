@@ -143,6 +143,4 @@ public interface ReferenceTypeDelegate {
 
 	public boolean hasBeenWoven();
 
-	public boolean hasAnnotations();
-
 }

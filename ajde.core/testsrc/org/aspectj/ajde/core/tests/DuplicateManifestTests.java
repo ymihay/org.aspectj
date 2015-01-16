@@ -46,10 +46,10 @@ public class DuplicateManifestTests extends AjdeCoreTestCase {
 	}
 
 	public void testWeave() {
-		Set<File> injars = new HashSet<File>();
+		Set injars = new HashSet();
 		injars.add(openFile(injarName));
 		compilerConfig.setInpath(injars);
-		Set<File> aspectpath = new HashSet<File>();
+		Set aspectpath = new HashSet();
 		aspectpath.add(openFile(aspectjarName));
 		compilerConfig.setAspectPath(aspectpath);
 		File outjar = openFile(outjarName);

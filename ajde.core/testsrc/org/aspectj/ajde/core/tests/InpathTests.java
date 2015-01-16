@@ -97,7 +97,7 @@ public class InpathTests extends AjdeCoreTestCase {
 	 * 
 	 */
 	public void testInpathToBin() {
-		Set<File> inpath = new HashSet<File>();
+		Set inpath = new HashSet();
 		File indir1 = openFile(indir1Name);
 		inpath.add(indir1);
 		compilerConfig.setInpath(inpath);
@@ -106,7 +106,7 @@ public class InpathTests extends AjdeCoreTestCase {
 		doBuild(true);
 		assertTrue("Expected no compiler errors or warnings but found " + handler.getMessages(), handler.getMessages().isEmpty());
 
-		Set<String> expectedBindirContents = new HashSet<String>();
+		Set expectedBindirContents = new HashSet();
 		// From indir1
 		// If we don't copy resources, these next three files won't make it
 		// expectedBindirContents.add("META-INF/MANIFEST.MF");
@@ -224,7 +224,7 @@ public class InpathTests extends AjdeCoreTestCase {
 	/*
 	 * Ensure -outjar contains all non-Java resouces from injars
 	 */
-	public void compareJars(File dirFile, String sourceDir, File outjarFile, Set<String> expectedOutputJarContents) {
+	public void compareJars(File dirFile, String sourceDir, File outjarFile, Set expectedOutputJarContents) {
 
 		try {
 			assertTrue(

@@ -978,7 +978,7 @@ public class BcelWeaver {
 
 			public IWeaveRequestor getRequestor() {
 				return new IWeaveRequestor() {
-					public void acceptResult(IUnwovenClassFile result) {
+					public void acceptResult(IUnwovenClassFile result, ClassLoader loader) {
 						try {
 							writeZipEntry(result.getFilename(), result.getBytes());
 						} catch (IOException ex) {
@@ -1001,7 +1001,7 @@ public class BcelWeaver {
 					}
 				};
 			}
-		});
+		}, null);
 		// /* BUG 40943*/
 		// dumpResourcesToOutJar();
 		zipOutputStream.close(); // this flushes and closes the acutal file
@@ -1009,9 +1009,10 @@ public class BcelWeaver {
 	}
 
 	private Set<IProgramElement> candidatesForRemoval = null;
+	private boolean redefine;
 
 	// variation of "weave" that sources class files from an external source.
-	public Collection<String> weave(IClassFileProvider input) throws IOException {
+	public Collection<String> weave(IClassFileProvider input, ClassLoader loader) throws IOException {
 		if (trace.isTraceEnabled()) {
 			trace.enter("weave", this, input);
 		}
@@ -1060,12 +1061,14 @@ public class BcelWeaver {
 						throw new BCException("Can't find bcel delegate for " + className + " type=" + theType.getClass());
 					}
 					LazyClassGen clazz = classType.getLazyClassGen();
+					clazz.setRedefine(this.redefine);
 					BcelPerClauseAspectAdder selfMunger = new BcelPerClauseAspectAdder(theType, theType.getPerClause().getKind());
 					selfMunger.forceMunge(clazz, true);
 					classType.finishedWith();
 					UnwovenClassFile[] newClasses = getClassFilesFor(clazz);
+
 					for (int news = 0; news < newClasses.length; news++) {
-						requestor.acceptResult(newClasses[news]);
+						requestor.acceptResult(newClasses[news],loader);
 					}
 					wovenClassNames.add(classFile.getClassName());
 				}
@@ -1152,7 +1155,7 @@ public class BcelWeaver {
 
 					throw new BCException("Can't find bcel delegate for " + className + " type=" + theType.getClass());
 				}
-				weaveAndNotify(classFile, classType, requestor);
+				weaveAndNotify(classFile, classType, requestor,loader);
 				wovenClassNames.add(className);
 			}
 		}
@@ -1170,18 +1173,20 @@ public class BcelWeaver {
 				BcelObjectType classType = BcelWorld.getBcelObjectType(theType);
 				if (classType == null) {
 
+					if (theType instanceof ReferenceType){ //JPereira
 					// bug 119882 - see above comment for bug 113531
-					ReferenceTypeDelegate theDelegate = ((ReferenceType) theType).getDelegate();
-
-					// TODO urgh - put a method on the interface to check this,
-					// string compare is hideous
-					if (theDelegate.getClass().getName().endsWith("EclipseSourceType")) {
-						continue;
+						ReferenceTypeDelegate theDelegate = ((ReferenceType) theType).getDelegate();
+	
+						// TODO urgh - put a method on the interface to check this,
+						// string compare is hideous
+						if (theDelegate.getClass().getName().endsWith("EclipseSourceType")) {
+							continue;
+						}
 					}
 
 					throw new BCException("Can't find bcel delegate for " + className + " type=" + theType.getClass());
 				}
-				weaveAndNotify(classFile, classType, requestor);
+				weaveAndNotify(classFile, classType, requestor,loader);
 				wovenClassNames.add(className);
 			}
 		}
@@ -1390,7 +1395,7 @@ public class BcelWeaver {
 		}
 	}
 
-	private void weaveAndNotify(UnwovenClassFile classFile, BcelObjectType classType, IWeaveRequestor requestor) throws IOException {
+	private void weaveAndNotify(UnwovenClassFile classFile, BcelObjectType classType, IWeaveRequestor requestor, ClassLoader loader) throws IOException {
 		trace.enter("weaveAndNotify", this, new Object[] { classFile, classType, requestor });
 
 		ContextToken tok = CompilationAndWeavingContext.enteringPhase(CompilationAndWeavingContext.WEAVING_TYPE, classType
@@ -1408,10 +1413,10 @@ public class BcelWeaver {
 				newClasses[0].setClassNameAsChars(classFile.getClassNameAsChars());
 			}
 			for (int i = 0; i < newClasses.length; i++) {
-				requestor.acceptResult(newClasses[i]);
+				requestor.acceptResult(newClasses[i],loader);
 			}
 		} else {
-			requestor.acceptResult(classFile);
+			requestor.acceptResult(classFile,loader);
 		}
 		classType.weavingCompleted();
 		CompilationAndWeavingContext.leavingPhase(tok);
@@ -2015,5 +2020,9 @@ public class BcelWeaver {
 	// only called for testing
 	public void setShadowMungers(List<ShadowMunger> shadowMungers) {
 		shadowMungerList = shadowMungers;
+	}
+
+	public void setRedefine(boolean redefine) {
+		this.redefine=redefine;		
 	}
 }

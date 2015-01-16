@@ -174,14 +174,4 @@ public class TestCompilerConfiguration implements ICompilerConfiguration {
 		return null;
 	}
 
-	public String getProcessor() {
-		// TODO Auto-generated method stub
-		return null;
-	}
-
-	public String getProcessorPath() {
-		// TODO Auto-generated method stub
-		return null;
-	}
-
 }

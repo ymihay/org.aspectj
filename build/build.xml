@@ -331,7 +331,7 @@
       	    forkmode="perTest"
       	    maxmemory="400m"
       		includeAntRuntime="off" 
-           	printsummary="yes" 
+           	printsummary="yes"
            	haltonfailure="${haltOnTestFailure}" >
            	<classpath>
            	    <pathelement location="${aj.jar.dir}/${module.name}-test-all.jar"/>

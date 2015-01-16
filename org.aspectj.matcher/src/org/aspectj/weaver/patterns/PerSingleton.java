@@ -22,7 +22,6 @@ import org.aspectj.weaver.ISourceContext;
 import org.aspectj.weaver.ResolvedMember;
 import org.aspectj.weaver.ResolvedType;
 import org.aspectj.weaver.Shadow;
-import org.aspectj.weaver.UnresolvedType;
 import org.aspectj.weaver.VersionedDataInputStream;
 import org.aspectj.weaver.World;
 import org.aspectj.weaver.ast.Expr;
@@ -56,7 +55,7 @@ public class PerSingleton extends PerClause {
 		// this method intentionally left blank
 	}
 
-	public Pointcut parameterizeWith(Map<String,UnresolvedType> typeVariableMap, World w) {
+	public Pointcut parameterizeWith(Map typeVariableMap, World w) {
 		return this;
 	}
 

@@ -413,7 +413,7 @@ public class BuildArgParser extends Main {
 				if (args.size() > nextArgIndex) {
 					// buildConfig.getAjOptions().put(AjCompilerOptions.OPTION_Inpath, CompilerOptions.PRESERVE);
 
-					List<File> inPath = buildConfig.getInpath();
+					List inPath = buildConfig.getInpath();
 					StringTokenizer st = new StringTokenizer(((ConfigParser.Arg) args.get(nextArgIndex)).getValue(),
 							File.pathSeparator);
 					while (st.hasMoreTokens()) {
@@ -475,7 +475,7 @@ public class BuildArgParser extends Main {
 				buildConfig.setMakeReflectable(true);
 			} else if (arg.equals("-sourceroots")) {
 				if (args.size() > nextArgIndex) {
-					List<File> sourceRoots = new ArrayList<File>();
+					List sourceRoots = new ArrayList();
 					StringTokenizer st = new StringTokenizer(((ConfigParser.Arg) args.get(nextArgIndex)).getValue(),
 							File.pathSeparator);
 					while (st.hasMoreTokens()) {

@@ -85,7 +85,9 @@ r<refentry>
         To run the project select "Run Project" from the AspectJ toolbar, or
         click &lt;ctrl&gt;F12 while the editor pane is active.  Note that the
         "AspectJ Runtime" library must be added to your project in order to 
-        run.  If the library is not added you will see a         "java.lang.NoClassDefFoundError: org/aspectj/lang/Signature" error.		The library is created automatically for you from the runtime
+        run.  If the library is not added you will see a 
+        "java.lang.NoClassDefFoundError: org/aspectj/lang/Signature" error.
+		The library is created automatically for you from the runtime
 		in "jbuilderdir/lib/ext".  You can also create a new  library
 		to use the runtime from a different location. If you have not added the 
 		library to the "Required Libraries" of your project it will be added

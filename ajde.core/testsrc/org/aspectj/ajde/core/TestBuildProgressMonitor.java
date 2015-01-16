@@ -11,6 +11,7 @@
 package org.aspectj.ajde.core;
 
 import java.util.ArrayList;
+import java.util.Iterator;
 import java.util.List;
 
 /**
@@ -28,7 +29,7 @@ public class TestBuildProgressMonitor implements IBuildProgressMonitor {
     
 	private String programmableString;
 	private int count;
-	private List<String> messagesReceived = new ArrayList<String>();
+	private List messagesReceived = new ArrayList();
 	private int currentVal;
 	private boolean isCancelRequested = false;
 		
@@ -74,7 +75,8 @@ public class TestBuildProgressMonitor implements IBuildProgressMonitor {
 	}
 	
 	public boolean containsMessage(String prefix,String distinguishingMarks) {
-		for (String element: messagesReceived) {
+		for (Iterator iter = messagesReceived.iterator(); iter.hasNext();) {
+			String element = (String) iter.next();
 			if (element.startsWith(prefix) &&
 			    element.indexOf(distinguishingMarks)!=-1) return true;
 		}
@@ -83,9 +85,11 @@ public class TestBuildProgressMonitor implements IBuildProgressMonitor {
 	
 	public void dumpMessages() {
 		System.out.println("ProgressMonitorMessages");
-		for (String element: messagesReceived) {
+		for (Iterator iter = messagesReceived.iterator(); iter.hasNext();) {
+			String element = (String) iter.next();
 			System.out.println(element);
 		}
 	}
+
 	
 }

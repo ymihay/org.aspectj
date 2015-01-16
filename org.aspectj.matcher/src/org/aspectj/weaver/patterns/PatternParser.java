@@ -1064,8 +1064,6 @@ public class PatternParser {
 				typeIsPattern = new TypeCategoryTypePattern(TypeCategoryTypePattern.ENUM);
 			} else if (category.equals("AnnotationType")) {
 				typeIsPattern = new TypeCategoryTypePattern(TypeCategoryTypePattern.ANNOTATION);
-			} else if (category.equals("FinalType")) {
-				typeIsPattern = new TypeCategoryTypePattern(TypeCategoryTypePattern.FINAL);
 			}
 		}
 		if (typeIsPattern == null) {

@@ -60,14 +60,17 @@ import org.aspectj.weaver.ResolvedMemberImpl;
 import org.aspectj.weaver.ResolvedType;
 import org.aspectj.weaver.Shadow;
 import org.aspectj.weaver.ShadowMunger;
+import org.aspectj.weaver.SignatureUtils;
 import org.aspectj.weaver.UnresolvedType;
 import org.aspectj.weaver.WeaverMessages;
 import org.aspectj.weaver.World;
+import org.aspectj.weaver.UnresolvedType.TypeKind;
 import org.aspectj.weaver.ast.Var;
 import org.aspectj.weaver.patterns.AbstractPatternNodeVisitor;
 import org.aspectj.weaver.patterns.AndPointcut;
 import org.aspectj.weaver.patterns.NotPointcut;
 import org.aspectj.weaver.patterns.OrPointcut;
+import org.aspectj.weaver.patterns.Pointcut;
 import org.aspectj.weaver.patterns.ThisOrTargetPointcut;
 
 /*
@@ -121,6 +124,12 @@ import org.aspectj.weaver.patterns.ThisOrTargetPointcut;
  */
 
 public class BcelShadow extends Shadow {
+	private static final Type[] ARRAY_7STRING_INT = new Type[] { Type.STRING, Type.STRING, Type.STRING, Type.STRING, Type.STRING,
+		Type.STRING, Type.STRING, Type.INT };
+	private static final Type[] ARRAY_7STRING = new Type[] { Type.STRING, Type.STRING, Type.STRING, Type.STRING, Type.STRING,
+		Type.STRING, Type.STRING };
+private static final Type[] ARRAY_8STRING_INT = new Type[] { Type.STRING, Type.STRING, Type.STRING, Type.STRING, Type.STRING,
+		Type.STRING, Type.STRING, Type.STRING, Type.INT };
 
 	private static final String[] NoDeclaredExceptions = new String[0];
 
@@ -145,6 +154,17 @@ public class BcelShadow extends Shadow {
 		this.enclosingMethod = enclosingMethod;
 	}
 
+	public void addMunger(ShadowMunger munger) {
+			super.addMunger(munger);
+		
+
+			
+		if(((munger.getPointcut().getPointcutKind()&Pointcut.CFLOW)>0)){
+				this.enclosingMethod.getEnclosingClass().hasCflow=true;
+				this.enclosingMethod.getEnclosingClass().forceInsertAjcPreClinit();
+			}
+		}
+	
 	// ---- copies all state, including Shadow's mungers...
 
 	public BcelShadow copyInto(LazyMethodGen recipient, BcelShadow enclosing) {
@@ -969,6 +989,7 @@ public class BcelShadow extends Shadow {
 	private boolean isThisJoinPointLazy;
 	private int lazyTjpConsumers = 0;
 	private BcelVar thisJoinPointStaticPartVar = null;
+	private int thisSJPregistry=-1;
 
 	// private BcelVar thisEnclosingJoinPointStaticPartVar = null;
 
@@ -1082,12 +1103,208 @@ public class BcelShadow extends Shadow {
 		return il;
 	}
 
+	
+	
+	private void makeInlineSJP(InstructionList list,InstructionFactory fact){
+		ObjectType factoryType = new ObjectType("org.aspectj.runtime.reflect.Factory");
+		ObjectType classType = new ObjectType("java.lang.Class");
+
+		// make a new factory
+		list.append(fact.createNew(factoryType));
+		list.append(InstructionFactory.createDup(1));
+		list.append(InstructionFactory.PUSH(fact.getConstantPool(), fact.getClassGen().getFileName()));
+		list.append(fact.PUSHCLASS(fact.getConstantPool(), fact.getClassGen().getClassName()));
+		list.append(fact.createInvoke(factoryType.getClassName(), "<init>", Type.VOID, new Type[] { Type.STRING, classType },
+				Constants.INVOKESPECIAL));
+		
+		
+		boolean fastSJP = false;
+		ObjectType enclosingStaticTjpType = new ObjectType("org.aspectj.lang.JoinPoint$EnclosingStaticPart");
+		ObjectType staticTjpType = new ObjectType("org.aspectj.lang.JoinPoint$StaticPart");
+		ObjectType sigType = new ObjectType("org.aspectj.lang.Signature");
+		
+		int tmpSlot = this.getEnclosingMethod().allocateLocal(Type.OBJECT);
+		list.append(InstructionFactory.createStore(factoryType, tmpSlot));
+	
+		ObjectType field = staticTjpType;
+		
+		ConstantPool cp = fact.getConstantPool();
+		
+		// avoid fast SJP if it is for an enclosing joinpoint
+		boolean isFastSJPAvailable = this.getWorld().isTargettingRuntime1_6_10()
+				
+				&& !enclosingStaticTjpType.equals(field.getType());
+
+		Member sig = this.getSignature();
+		
+		// load the factory
+		list.append(InstructionFactory.createLoad(factoryType, tmpSlot));
+
+		// load the kind
+		list.append(InstructionFactory.PUSH(cp, this.getKind().getName()));
+
+		// create the signature
+		if (world.isTargettingAspectJRuntime12() || !isFastSJPAvailable || !sig.getKind().equals(Member.METHOD)) {
+			list.append(InstructionFactory.createLoad(factoryType, tmpSlot));
+		}
+
+		String signatureMakerName = SignatureUtils.getSignatureMakerName(sig);
+		ObjectType signatureType = new ObjectType(SignatureUtils.getSignatureType(sig));
+		UnresolvedType[] exceptionTypes = null;
+		if (world.isTargettingAspectJRuntime12()) { // TAG:SUPPORTING12: We
+			// didn't have optimized
+			// factory methods in 1.2
+			list.append(InstructionFactory.PUSH(cp, SignatureUtils.getSignatureString(sig, this.getWorld())));
+			list.append(fact.createInvoke(factoryType.getClassName(), signatureMakerName, signatureType, Type.STRINGARRAY1,
+					Constants.INVOKEVIRTUAL));
+		} else if (sig.getKind().equals(Member.METHOD)) {
+			BcelWorld w = this.getWorld();
+
+			// For methods, push the parts of the signature on.
+			list.append(InstructionFactory.PUSH(cp, makeString(sig.getModifiers(w))));
+			list.append(InstructionFactory.PUSH(cp, sig.getName()));
+			list.append(InstructionFactory.PUSH(cp, makeString(sig.getDeclaringType())));
+			list.append(InstructionFactory.PUSH(cp, makeString(sig.getParameterTypes())));
+			list.append(InstructionFactory.PUSH(cp, makeString(sig.getParameterNames(w))));
+			exceptionTypes = sig.getExceptions(w);
+			if (isFastSJPAvailable && exceptionTypes.length == 0) {
+				fastSJP = true;
+			} else {
+				list.append(InstructionFactory.PUSH(cp, makeString(exceptionTypes)));
+			}
+			list.append(InstructionFactory.PUSH(cp, makeString(sig.getReturnType())));
+			// And generate a call to the variant of makeMethodSig() that takes the strings
+			if (isFastSJPAvailable) {
+				fastSJP = true;
+			} else {
+				list.append(fact.createInvoke(factoryType.getClassName(), signatureMakerName, signatureType, Type.STRINGARRAY7,
+						Constants.INVOKEVIRTUAL));
+			}
+
+		} else if (sig.getKind().equals(Member.MONITORENTER)) {
+			list.append(InstructionFactory.PUSH(cp, makeString(sig.getDeclaringType())));
+			list.append(fact.createInvoke(factoryType.getClassName(), signatureMakerName, signatureType, Type.STRINGARRAY1,
+					Constants.INVOKEVIRTUAL));
+		} else if (sig.getKind().equals(Member.MONITOREXIT)) {
+			list.append(InstructionFactory.PUSH(cp, makeString(sig.getDeclaringType())));
+			list.append(fact.createInvoke(factoryType.getClassName(), signatureMakerName, signatureType, Type.STRINGARRAY1,
+					Constants.INVOKEVIRTUAL));
+		} else if (sig.getKind().equals(Member.HANDLER)) {
+			BcelWorld w = this.getWorld();
+			list.append(InstructionFactory.PUSH(cp, makeString(sig.getDeclaringType())));
+			list.append(InstructionFactory.PUSH(cp, makeString(sig.getParameterTypes())));
+			list.append(InstructionFactory.PUSH(cp, makeString(sig.getParameterNames(w))));
+			list.append(fact.createInvoke(factoryType.getClassName(), signatureMakerName, signatureType, Type.STRINGARRAY3,
+					Constants.INVOKEVIRTUAL));
+		} else if (sig.getKind().equals(Member.CONSTRUCTOR)) {
+			BcelWorld w = this.getWorld();
+			if (w.isJoinpointArrayConstructionEnabled() && sig.getDeclaringType().isArray()) {
+				// its the magical new jp
+				list.append(InstructionFactory.PUSH(cp, makeString(Modifier.PUBLIC)));
+				list.append(InstructionFactory.PUSH(cp, makeString(sig.getDeclaringType())));
+				list.append(InstructionFactory.PUSH(cp, makeString(sig.getParameterTypes())));
+				list.append(InstructionFactory.PUSH(cp, "")); // sig.getParameterNames?
+				list.append(InstructionFactory.PUSH(cp, ""));// sig.getExceptions?
+				list.append(fact.createInvoke(factoryType.getClassName(), signatureMakerName, signatureType, Type.STRINGARRAY5,
+						Constants.INVOKEVIRTUAL));
+			} else {
+				list.append(InstructionFactory.PUSH(cp, makeString(sig.getModifiers(w))));
+				list.append(InstructionFactory.PUSH(cp, makeString(sig.getDeclaringType())));
+				list.append(InstructionFactory.PUSH(cp, makeString(sig.getParameterTypes())));
+				list.append(InstructionFactory.PUSH(cp, makeString(sig.getParameterNames(w))));
+				list.append(InstructionFactory.PUSH(cp, makeString(sig.getExceptions(w))));
+				list.append(fact.createInvoke(factoryType.getClassName(), signatureMakerName, signatureType, Type.STRINGARRAY5,
+						Constants.INVOKEVIRTUAL));
+			}
+		} else if (sig.getKind().equals(Member.FIELD)) {
+			BcelWorld w = this.getWorld();
+			list.append(InstructionFactory.PUSH(cp, makeString(sig.getModifiers(w))));
+			list.append(InstructionFactory.PUSH(cp, sig.getName()));
+			// see pr227401
+			UnresolvedType dType = sig.getDeclaringType();
+			if (dType.getTypekind() == TypeKind.PARAMETERIZED || dType.getTypekind() == TypeKind.GENERIC) {
+				dType = sig.getDeclaringType().resolve(world).getGenericType();
+			}
+			list.append(InstructionFactory.PUSH(cp, makeString(dType)));
+			list.append(InstructionFactory.PUSH(cp, makeString(sig.getReturnType())));
+			list.append(fact.createInvoke(factoryType.getClassName(), signatureMakerName, signatureType, Type.STRINGARRAY4,
+					Constants.INVOKEVIRTUAL));
+		} else if (sig.getKind().equals(Member.ADVICE)) {
+			BcelWorld w = this.getWorld();
+			list.append(InstructionFactory.PUSH(cp, makeString(sig.getModifiers(w))));
+			list.append(InstructionFactory.PUSH(cp, sig.getName()));
+			list.append(InstructionFactory.PUSH(cp, makeString(sig.getDeclaringType())));
+			list.append(InstructionFactory.PUSH(cp, makeString(sig.getParameterTypes())));
+			list.append(InstructionFactory.PUSH(cp, makeString(sig.getParameterNames(w))));
+			list.append(InstructionFactory.PUSH(cp, makeString(sig.getExceptions(w))));
+			list.append(InstructionFactory.PUSH(cp, makeString((sig.getReturnType()))));
+			list.append(fact.createInvoke(factoryType.getClassName(), signatureMakerName, signatureType, new Type[] { Type.STRING,
+					Type.STRING, Type.STRING, Type.STRING, Type.STRING, Type.STRING, Type.STRING }, Constants.INVOKEVIRTUAL));
+		} else if (sig.getKind().equals(Member.STATIC_INITIALIZATION)) {
+			BcelWorld w = this.getWorld();
+			list.append(InstructionFactory.PUSH(cp, makeString(sig.getModifiers(w))));
+			list.append(InstructionFactory.PUSH(cp, makeString(sig.getDeclaringType())));
+			list.append(fact.createInvoke(factoryType.getClassName(), signatureMakerName, signatureType, Type.STRINGARRAY2,
+					Constants.INVOKEVIRTUAL));
+		} else {
+			list.append(InstructionFactory.PUSH(cp, SignatureUtils.getSignatureString(sig, this.getWorld())));
+			list.append(fact.createInvoke(factoryType.getClassName(), signatureMakerName, signatureType, Type.STRINGARRAY1,
+					Constants.INVOKEVIRTUAL));
+		}
+
+		// XXX should load source location from shadow
+		list.append(Utility.createConstant(fact, this.getSourceLine()));
+
+		final String factoryMethod;
+
+		// TAG:SUPPORTING12: We didn't have makeESJP() in 1.2
+		if (world.isTargettingAspectJRuntime12()) {
+			list.append(fact.createInvoke(factoryType.getClassName(), "makeSJP", staticTjpType, new Type[] { Type.STRING, sigType,
+					Type.INT }, Constants.INVOKEVIRTUAL));
+
+		} else {
+			if (staticTjpType.equals(field)) {
+				factoryMethod = "makeSJP";
+			} else if (enclosingStaticTjpType.equals(field)) {
+				factoryMethod = "makeESJP";
+			} else {
+				throw new Error("should not happen");
+			}
+
+			if (fastSJP) {
+				if (exceptionTypes != null && exceptionTypes.length != 0) {
+					list.append(fact.createInvoke(factoryType.getClassName(), factoryMethod, field, ARRAY_8STRING_INT,
+							Constants.INVOKEVIRTUAL));
+				} else {
+					list.append(fact.createInvoke(factoryType.getClassName(), factoryMethod, field, ARRAY_7STRING_INT,
+							Constants.INVOKEVIRTUAL));
+				}
+			} else {
+				list.append(fact.createInvoke(factoryType.getClassName(), factoryMethod, field, new Type[] { Type.STRING,
+						sigType, Type.INT }, Constants.INVOKEVIRTUAL));
+			}
+		}
+		
+		list.append(InstructionConstants.DUP);
+		int targetSlot = this.getEnclosingMethod().allocateLocal(Type.OBJECT);
+		list.append(InstructionFactory.createStore(factoryType, targetSlot));
+		this.thisSJPregistry = targetSlot;
+	}
+	
 	InstructionList createThisJoinPoint() {
 		InstructionFactory fact = getFactory();
 		InstructionList il = new InstructionList();
+		
+		if(!this.enclosingMethod.getEnclosingClass().shouldOmitAJCPreclinit()){
+			BcelVar staticPart = getThisJoinPointStaticPartBcelVar();
+			staticPart.appendLoad(il, fact);
+		}else{
 
-		BcelVar staticPart = getThisJoinPointStaticPartBcelVar();
-		staticPart.appendLoad(il, fact);
+					
+			
+			makeInlineSJP(il,fact);
+		}
+		
 		if (hasThis()) {
 			((BcelVar) getThisVar()).appendLoad(il, fact);
 		} else {
@@ -1125,6 +1342,54 @@ public class BcelShadow extends Shadow {
 		return il;
 	}
 
+	protected String makeString(int i) {
+		return Integer.toString(i, 16); // ??? expensive
+	}
+
+	protected String makeString(UnresolvedType t) {
+		// this is the inverse of the odd behavior for Class.forName w/ arrays
+		if (t.isArray()) {
+			// this behavior matches the string used by the eclipse compiler for
+			// Foo.class literals
+			return t.getSignature().replace('/', '.');
+		} else {
+			if (t.isParameterizedType()) {
+				return t.getRawType().getName();
+			} else {
+				return t.getName();
+			}
+		}
+	}
+
+	protected String makeString(UnresolvedType[] types) {
+		if (types == null) {
+			return "";
+		}
+		StringBuilder buf = new StringBuilder();
+		for (int i = 0, len = types.length; i < len; i++) {
+			if (i > 0) {
+				buf.append(':');
+			}
+			buf.append(makeString(types[i]));
+		}
+		return buf.toString();
+	}
+
+	protected String makeString(String[] names) {
+		if (names == null) {
+			return "";
+		}
+		StringBuilder buf = new StringBuilder();
+		for (int i = 0, len = names.length; i < len; i++) {
+			if (i > 0) {
+				buf.append(':');
+			}
+			buf.append(names[i]);
+		}
+		return buf.toString();
+	}
+
+	//ABR
 	public BcelVar getThisJoinPointStaticPartBcelVar() {
 		return getThisJoinPointStaticPartBcelVar(false);
 	}
@@ -2021,9 +2286,7 @@ public class BcelShadow extends Shadow {
 
 	public void weaveCflowEntry(final BcelAdvice munger, final Member cflowField) {
 		final boolean isPer = munger.getKind() == AdviceKind.PerCflowBelowEntry || munger.getKind() == AdviceKind.PerCflowEntry;
-		if (!isPer && getKind() == PreInitialization) {
-			return;
-		}
+
 		final Type objectArrayType = new ArrayType(Type.OBJECT, 1);
 		final InstructionFactory fact = getFactory();
 
@@ -2082,7 +2345,8 @@ public class BcelShadow extends Shadow {
 			entryInstructions.append(entrySuccessInstructions);
 		}
 
-		BcelAdvice exitAdvice = new BcelAdvice(null, null, null, 0, 0, 0, null, munger.getConcreteAspect()) {
+		// this is the same for both per and non-per
+		weaveAfter(new BcelAdvice(null, null, null, 0, 0, 0, null, munger.getConcreteAspect()) {
 			@Override
 			public InstructionList getAdviceInstructions(BcelShadow s, BcelVar extraArgVar, InstructionHandle ifNoAdvice) {
 				InstructionList exitInstructions = new InstructionList();
@@ -2101,13 +2365,7 @@ public class BcelShadow extends Shadow {
 				}
 				return exitInstructions;
 			}
-		};
-//		if (getKind() == PreInitialization) {
-//			weaveAfterReturning(exitAdvice);
-//		}
-//		else {
-			weaveAfter(exitAdvice);
-//		}
+		});
 
 		range.insert(entryInstructions, Range.InsideBefore);
 	}
@@ -3411,4 +3669,16 @@ public class BcelShadow extends Shadow {
 	public String getActualTargetType() {
 		return actualInstructionTargetType;
 	}
+
+	public void injectThisJoinPointStaticPart(InstructionList il,
+			InstructionFactory fact) {
+		
+		// FIXME: ABR Include the rest of stuff if it has not been already included
+		if(thisSJPregistry <0){
+			// This thing has not been init:
+			this.makeInlineSJP(il, fact);
+		}else{
+			ObjectType staticTjpType = new ObjectType("org.aspectj.lang.JoinPoint$StaticPart");
+			il.append(InstructionFactory.createLoad(staticTjpType, this.thisSJPregistry));	}
+		}
 }

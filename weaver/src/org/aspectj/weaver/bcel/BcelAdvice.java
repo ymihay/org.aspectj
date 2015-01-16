@@ -19,14 +19,12 @@ import java.util.Collection;
 import java.util.Collections;
 import java.util.Map;
 
-import org.aspectj.apache.bcel.Constants;
 import org.aspectj.apache.bcel.classfile.LocalVariable;
 import org.aspectj.apache.bcel.classfile.LocalVariableTable;
 import org.aspectj.apache.bcel.generic.InstructionConstants;
 import org.aspectj.apache.bcel.generic.InstructionFactory;
 import org.aspectj.apache.bcel.generic.InstructionHandle;
 import org.aspectj.apache.bcel.generic.InstructionList;
-import org.aspectj.apache.bcel.generic.InvokeDynamic;
 import org.aspectj.apache.bcel.generic.LineNumberTag;
 import org.aspectj.apache.bcel.generic.LocalVariableTag;
 import org.aspectj.bridge.ISourceLocation;
@@ -71,8 +69,7 @@ class BcelAdvice extends Advice {
 	 */
 	private Test runtimeTest;
 	private ExposedState exposedState;
-	private int containsInvokedynamic = 0;// 0 = dontknow, 1=no, 2=yes
-	
+
 	public BcelAdvice(AjAttribute.AdviceAttribute attribute, Pointcut pointcut, Member adviceSignature, ResolvedType concreteAspect) {
 		super(attribute, pointcut, simplify(attribute.getKind(), adviceSignature));
 		this.concreteAspect = concreteAspect;
@@ -234,24 +231,6 @@ class BcelAdvice extends Advice {
 		BcelObjectType boType = BcelWorld.getBcelObjectType(concreteAspect);
 		if (boType == null) {
 			// Could be a symptom that the aspect failed to build last build... return the default answer of false
-			return false;
-		}
-		// Need isJava8 check
-		// Does the advice contain invokedynamic...
-		if (boType.javaClass.getMajor() == Constants.MAJOR_1_8) {
-			if (containsInvokedynamic == 0) {
-				containsInvokedynamic = 1;
-				LazyMethodGen lmg = boType.getLazyClassGen().getLazyMethodGen(this.signature);
-				InstructionList ilist = lmg.getBody();
-				for (InstructionHandle src = ilist.getStart(); src != null; src = src.getNext()) {
-					if (src.getInstruction().opcode == Constants.INVOKEDYNAMIC) {
-						containsInvokedynamic = 2;
-						break;
-					}
-				}
-			}
-		}
-		if (containsInvokedynamic == 2) {
 			return false;
 		}
 		return boType.getLazyClassGen().isWoven();
@@ -594,7 +573,11 @@ class BcelAdvice extends Advice {
 							.getSignature())) {
 						previousIsClosure = false;
 						if ((getExtraParameterFlags() & ThisJoinPointStaticPart) != 0) {
-							shadow.getThisJoinPointStaticPartBcelVar().appendLoad(il, fact);
+							if( shadow.getEnclosingClass().shouldOmitAJCPreclinit()){
+								shadow.injectThisJoinPointStaticPart(il,fact);
+							}else{
+								shadow.getThisJoinPointStaticPartBcelVar().appendLoad(il, fact);
+							}
 						}
 					} else if ("Lorg/aspectj/lang/JoinPoint;".equals(getSignature().getParameterTypes()[i].getSignature())) {
 						previousIsClosure = false;
@@ -605,7 +588,11 @@ class BcelAdvice extends Advice {
 							.getSignature())) {
 						previousIsClosure = false;
 						if ((getExtraParameterFlags() & ThisEnclosingJoinPointStaticPart) != 0) {
-							shadow.getThisEnclosingJoinPointStaticPartBcelVar().appendLoad(il, fact);
+							if(shadow.getEnclosingClass().shouldOmitAJCPreclinit()){
+								shadow.injectThisJoinPointStaticPart(il,fact);
+							}else{
+								shadow.getThisEnclosingJoinPointStaticPartBcelVar().appendLoad(il, fact);
+							}
 						}
 					} else if (hasExtraParameter()) {
 						previousIsClosure = false;
@@ -641,7 +628,12 @@ class BcelAdvice extends Advice {
 			// these need to be in that same order as parameters in
 			// org.aspectj.ajdt.internal.compiler.ast.AdviceDeclaration
 			if ((getExtraParameterFlags() & ThisJoinPointStaticPart) != 0) {
-				shadow.getThisJoinPointStaticPartBcelVar().appendLoad(il, fact);
+				if(shadow.getEnclosingClass().shouldOmitAJCPreclinit()){
+					shadow.injectThisJoinPointStaticPart(il,fact);
+				}
+				else{
+					shadow.getThisJoinPointStaticPartBcelVar().appendLoad(il, fact);
+				}
 			}
 
 			if ((getExtraParameterFlags() & ThisJoinPoint) != 0) {
@@ -649,7 +641,11 @@ class BcelAdvice extends Advice {
 			}
 
 			if ((getExtraParameterFlags() & ThisEnclosingJoinPointStaticPart) != 0) {
-				shadow.getThisEnclosingJoinPointStaticPartBcelVar().appendLoad(il, fact);
+				if(shadow.getEnclosingClass().shouldOmitAJCPreclinit()){
+					shadow.injectThisJoinPointStaticPart(il,fact);
+				}else{
+					shadow.getThisEnclosingJoinPointStaticPartBcelVar().appendLoad(il, fact);
+				}
 			}
 		}
 

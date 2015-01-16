@@ -36,4 +36,6 @@ public interface ClassPreProcessor {
 	 * @return
 	 */
 	byte[] preProcess(String className, byte[] bytes, ClassLoader classLoader, ProtectionDomain protectionDomain);
+	byte[] preProcess(String className, byte[] bytes, ClassLoader classLoader, ProtectionDomain protectionDomain, boolean redefine);
+
 }

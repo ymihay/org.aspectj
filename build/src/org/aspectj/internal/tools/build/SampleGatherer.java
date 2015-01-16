@@ -442,7 +442,8 @@ class SamplesRenderer {
 
     public static final String COPYRIGHT = 
         "<p><small>Copyright 2003 Contributors. All Rights Reserved. "
-        + "This sample code is made available under the Common Public "        + "License version 1.0 available at "
+        + "This sample code is made available under the Common Public "
+        + "License version 1.0 available at "
         + "<a href=\"http://www.eclipse.org/legal/epl-v10.html\">"
         + "http://www.eclipse.org/legal/epl-v10.html</a>."
         + "Contributors are listed in this document as authors. "
