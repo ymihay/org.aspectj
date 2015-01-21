@@ -99,7 +99,7 @@ public class DocumentParser extends DefaultHandler {
 
 		value = false;
 		try {
-			value = System.getProperty("org.aspectj.weaver.loadtime.configuration.lightxmlparser", "false")
+			value = System.getProperty("org.aspectj.weaver.loadtime.configuration.lightxmlparser", "true")
 					.equalsIgnoreCase("true");
 		} catch (Throwable t) {
 			t.printStackTrace();

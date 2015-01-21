@@ -511,7 +511,7 @@ public class AjPipeliningCompilerAdapter extends AbstractCompilerAdapter {
 		if (weaver.needToReweaveWorld() && !isBatchCompile) {
 			return true;
 		}
-		weaver.weave(new WeaverAdapter(this, weaverMessageHandler, progressListener));
+		weaver.weave(new WeaverAdapter(this, weaverMessageHandler, progressListener),null);
 		resultsPendingWeave.clear(); // dont need to do those again
 		this.eWorld.minicleanup();
 		if (debugPipeline) {

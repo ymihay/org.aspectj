@@ -32,7 +32,7 @@ public class DefaultWeavingContext implements IWeavingContext {
 	protected BcelWeakClassLoaderReference loaderRef;
 	private String shortName;
 
-	private static Trace trace = TraceFactory.getTraceFactory().getTrace(DefaultWeavingContext.class);
+//	private static Trace trace = TraceFactory.getTraceFactory().getTrace(DefaultWeavingContext.class);
 
 	/**
 	 * Construct a new WeavingContext to use the specified ClassLoader This is the constructor which should be used.
@@ -123,15 +123,15 @@ public class DefaultWeavingContext implements IWeavingContext {
 	 * @param loader
 	 */
 	public List<Definition> getDefinitions(final ClassLoader loader, final WeavingAdaptor adaptor) {
-		if (trace.isTraceEnabled()) {
-			trace.enter("getDefinitions", this, new Object[] { "goo", adaptor });
-		}
+//		if (trace.isTraceEnabled()) {
+//			trace.enter("getDefinitions", this, new Object[] { "goo", adaptor });
+//		}
 
 		List<Definition> definitions = ((ClassLoaderWeavingAdaptor) adaptor).parseDefinitions(loader);
 
-		if (trace.isTraceEnabled()) {
-			trace.exit("getDefinitions", definitions);
-		}
+//		if (trace.isTraceEnabled()) {
+//			trace.exit("getDefinitions", definitions);
+//		}
 		return definitions;
 	}
 }

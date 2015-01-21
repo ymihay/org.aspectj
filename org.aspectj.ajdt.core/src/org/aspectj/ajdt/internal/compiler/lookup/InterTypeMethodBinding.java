@@ -100,11 +100,11 @@ public class InterTypeMethodBinding extends MethodBinding {
 		if (invocationType == declaringClass)
 			return true;
 
-		if (invocationType.privilegedHandler != null) {
-			// it is a privileged aspect
-			return true;
-		}
-		
+		// if (invocationType.isPrivileged) {
+		// System.out.println("privileged access to: " + this);
+		// return true;
+		// }
+
 		if (isProtected()) {
 			throw new RuntimeException("unimplemented");
 		}

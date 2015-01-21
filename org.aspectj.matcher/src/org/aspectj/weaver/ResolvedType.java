@@ -59,6 +59,12 @@ public abstract class ResolvedType extends UnresolvedType implements AnnotatedEl
 	private static int TypeHierarchyCompleteBit = 0x0010;
 	private static int GroovyObjectInitialized = 0x0020;
 	private static int IsGroovyObject = 0x0040;
+	
+	 
+	private boolean triedTraitResolution = false;//in order to try to resolve scala traits
+	public void setTriedTraitResolution(boolean t){
+		this.triedTraitResolution = t;
+	}
 
 	protected ResolvedType(String signature, World world) {
 		super(signature);
@@ -926,11 +932,11 @@ public abstract class ResolvedType extends UnresolvedType implements AnnotatedEl
 		throw new RuntimeException("ResolvedType.getAnnotations() should never be called");
 	}
 	
+		
 	public boolean hasAnnotations() {
 		throw new RuntimeException("ResolvedType.getAnnotations() should never be called");
 	}
-
-
+	
 	/**
 	 * Note: Only overridden by ReferenceType subtype
 	 */
@@ -1520,6 +1526,37 @@ public abstract class ResolvedType extends UnresolvedType implements AnnotatedEl
 		}
 		if (isNested() || isAnonymous()) {
 			return getOuterClass();
+		}
+		
+		String name = getName();
+		int lastDollar = name.lastIndexOf('$');
+		while (lastDollar > 0) { // allow for classes starting '$' (pr120474)	
+			if (name.charAt(lastDollar-1) == '$'){ //some scala internal compilation contains 2 consecutive $$. like  "play.api.mvc.RequestExtractors$$amp$.class"
+				lastDollar--;
+			}
+			String stepName = name.substring(0, lastDollar);
+			
+			if (lastDollar == name.length()-1){ // scala traits with implementation. the classname ends with $
+				if (!triedTraitResolution){ //first attemp to resolve the trait-try to resolve it without removing last $
+					triedTraitResolution = true;
+					stepName = name;
+				}else{//second attemp. remove last $
+					lastDollar = name.lastIndexOf('$', lastDollar - 1);
+					continue;
+				}
+			}
+			else if (stepName.endsWith("$$anonfun") || stepName.endsWith("$$anon")){ //avoid anonymous functions resolution
+				lastDollar = stepName.lastIndexOf("$$anon");
+				stepName = name.substring(0, lastDollar);
+			}
+			ResolvedType ret = world.resolve(UnresolvedType.forName(stepName), true);
+			
+			ret.setTriedTraitResolution(triedTraitResolution); //mark for next step
+			
+			if (!ResolvedType.isMissing(ret)) {
+				return ret;
+			}
+			lastDollar = name.lastIndexOf('$', lastDollar - 1);
 		}
 		return null;
 	}

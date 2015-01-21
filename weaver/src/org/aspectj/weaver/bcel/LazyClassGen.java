@@ -44,6 +44,7 @@ import org.aspectj.apache.bcel.classfile.annotation.AnnotationGen;
 import org.aspectj.apache.bcel.generic.BasicType;
 import org.aspectj.apache.bcel.generic.ClassGen;
 import org.aspectj.apache.bcel.generic.FieldGen;
+import org.aspectj.apache.bcel.generic.Instruction;
 import org.aspectj.apache.bcel.generic.InstructionConstants;
 import org.aspectj.apache.bcel.generic.InstructionFactory;
 import org.aspectj.apache.bcel.generic.InstructionHandle;
@@ -78,6 +79,10 @@ import org.aspectj.weaver.bcel.asm.StackMapAdder;
  * Aspect.
  */
 public final class LazyClassGen {
+	
+	protected boolean hasCflow = false;
+
+	
 
 	private static final int ACC_SYNTHETIC = 0x1000;
 
@@ -112,7 +117,16 @@ public final class LazyClassGen {
 	private ResolvedType[] extraSuperInterfaces = null;
 	private ResolvedType superclass = null;
 
+	private LazyMethodGen bufferedAjcPreClinit;
+	private InstructionList bufferedStaticInitializer;
+	private Instruction bufferedInvkAjcPreClinit;
+	public  boolean redefine = true;
+
 	// ---
+
+	public  boolean shouldOmitAJCPreclinit(){
+		return redefine&&!hasCflow;
+	}
 
 	static class InlinedSourceFileInfo {
 		int highestLineNumber;
@@ -947,6 +961,11 @@ public final class LazyClassGen {
 		if (this.isInterface()) {
 			throw new IllegalStateException();
 		}
+		
+		if(bufferedAjcPreClinit!=null){
+			return bufferedAjcPreClinit;
+		}
+		
 		for (LazyMethodGen methodGen : methodGens) {
 			if (methodGen.getName().equals(NameMangler.AJC_PRE_CLINIT_NAME)) {
 				return methodGen;
@@ -955,8 +974,16 @@ public final class LazyClassGen {
 		LazyMethodGen ajcPreClinit = new LazyMethodGen(Modifier.PRIVATE | Modifier.STATIC, Type.VOID,
 				NameMangler.AJC_PRE_CLINIT_NAME, Type.NO_ARGS, NO_STRINGS, this);
 		ajcPreClinit.getBody().insert(InstructionConstants.RETURN);
-		methodGens.add(ajcPreClinit);
-		getStaticInitializer().getBody().insert(Utility.createInvoke(fact, ajcPreClinit));
+
+		this.bufferedAjcPreClinit = ajcPreClinit;
+		this.bufferedStaticInitializer = 	getStaticInitializer().getBody();
+		this. bufferedInvkAjcPreClinit = Utility.createInvoke(fact, ajcPreClinit);
+		
+		if(!redefine || (!alreadyAjcPreClientInserted && forceInsertAjcPreClinit)){
+			methodGens.add(bufferedAjcPreClinit);
+			bufferedStaticInitializer.insert(bufferedInvkAjcPreClinit);
+			alreadyAjcPreClientInserted = true;
+		}
 		return ajcPreClinit;
 	}
 
@@ -983,6 +1010,12 @@ public final class LazyClassGen {
 	Map<CacheKey, Field> annotationCachingFieldCache = new HashMap<CacheKey, Field>();
 	private int tjpFieldsCounter = -1; // -1 means not yet initialized
 	private int annoFieldsCounter = 0;
+
+	private boolean ajcPreClientForced;
+
+	private boolean alreadyAjcPreClientInserted;
+
+	private boolean forceInsertAjcPreClinit=!redefine;
 	public static final ObjectType proceedingTjpType = new ObjectType("org.aspectj.lang.ProceedingJoinPoint");
 	public static final ObjectType tjpType = new ObjectType("org.aspectj.lang.JoinPoint");
 	public static final ObjectType staticTjpType = new ObjectType("org.aspectj.lang.JoinPoint$StaticPart");
@@ -1214,6 +1247,22 @@ public final class LazyClassGen {
 			}
 		});
 
+		/*
+		 * modifications done to fix a bug at servicaixa(?) with a large jsp.
+		long estimatedSize=0;
+		for (Iterator<Map.Entry<BcelShadow, Field>> i = entries.iterator(); i.hasNext();) {
+			Map.Entry<BcelShadow, Field> entry = i.next();
+			
+			estimatedSize += entry.getValue().getSignature().getBytes().length;		
+				if (estimatedSize > Constants.MAX_CODE_SIZE_WITH_TOLERANCE) {
+					estimatedSize = 0;
+					list = initInstructionList();
+					lists.add(list);
+				}	
+			initializeTjp(fact, list, entry.getValue(), entry.getKey());
+			
+		}
+		*/
 		long estimatedSize = 0;
 		for (Iterator<Map.Entry<BcelShadow, Field>> i = entries.iterator(); i.hasNext();) {
 			Map.Entry<BcelShadow, Field> entry = i.next();
@@ -1468,8 +1517,10 @@ public final class LazyClassGen {
 		} else {
 			bcelField = new BcelField(getName(), field.getField(), world);
 		}
-		fields.add(bcelField);
-		// myGen.addField(field.getField());
+		
+		if(this.forceInsertAjcPreClinit ||!field.getSignature().equals("Lorg/aspectj/lang/JoinPoint$StaticPart;")){
+			fields.add(bcelField);
+		}
 	}
 
 	private void makeSyntheticAndTransientIfNeeded(FieldGen field) {
@@ -1647,6 +1698,20 @@ public final class LazyClassGen {
 			}
 		}
 		return prefix + Integer.toString(highestAllocated + 1);
+	}
+
+	public void forceInsertAjcPreClinit() {
+		this.forceInsertAjcPreClinit = true;
+		
+		if(!alreadyAjcPreClientInserted && bufferedAjcPreClinit!=null && bufferedStaticInitializer!=null && bufferedInvkAjcPreClinit!=null){
+			methodGens.add(bufferedAjcPreClinit);
+			bufferedStaticInitializer.insert(bufferedInvkAjcPreClinit);
+			alreadyAjcPreClientInserted=true;
+		}
+	}
+
+	public void setRedefine(boolean redefine) {
+		this.redefine=true;
 	}
 
 }

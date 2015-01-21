@@ -48,9 +48,21 @@ public class ClassPreProcessorAgentAdapter implements ClassFileTransformer {
 	 */
 	public byte[] transform(ClassLoader loader, String className, Class<?> classBeingRedefined, ProtectionDomain protectionDomain,
 			byte[] bytes) throws IllegalClassFormatException {
-		if (classBeingRedefined != null) {
-			System.err.println("INFO: (Enh120375):  AspectJ attempting reweave of '" + className + "'");
+
+		if (org.aspectj.weaver.loadtime.Agent.UseOriginalByteCode()){
+			return bytes;
 		}
-		return s_preProcessor.preProcess(className, bytes, loader, protectionDomain);
+		
+		boolean redefine = false;
+		if (classBeingRedefined != null) {
+			redefine=true;
+		}
+		byte[] wovenBytes = null;
+		try {
+			wovenBytes = s_preProcessor.preProcess(className, bytes, loader, protectionDomain,redefine);
+		} catch (Throwable th) {
+			return bytes;
+		}
+		return wovenBytes;
 	}
 }

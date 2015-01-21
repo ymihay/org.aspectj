@@ -230,6 +230,9 @@ abstract class SignatureImpl implements Signature {
 		}
 
 		private String[] array() {
+//			if (toStringCacheRef == null){
+//				return null;
+//			}//TODO JP patch done to  TI (Fran). waiting for client confirmation to release it
 			return (String[]) toStringCacheRef.get();
 		}
 

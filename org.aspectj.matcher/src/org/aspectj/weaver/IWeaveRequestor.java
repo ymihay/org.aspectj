@@ -22,7 +22,7 @@ public interface IWeaveRequestor {
 	/*
 	 * A class file resulting from a weave (yes, even though the type name says "unwoven"...).
 	 */
-	void acceptResult(IUnwovenClassFile result);
+	void acceptResult(IUnwovenClassFile result, ClassLoader cl);
 
 	// various notifications to the requestor about our progress...
 	void processingReweavableState();

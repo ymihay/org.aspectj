@@ -8,6 +8,7 @@
 	<classpathentry kind="src" path="testsrc"/>
 	<classpathentry kind="lib" path="/lib/junit/junit.jar" sourcepath="/lib/junit/junit-src.jar"/>
 	<classpathentry kind="var" path="JAVA_HOME/lib/tools.jar"/>
+	<classpathentry kind="lib" path="/lib/jaxp-ri-1.4.jar"/>
 	<classpathentry kind="var" path="JRE15_LIB"/>
 	<classpathentry kind="output" path="bin"/>
 </classpath>

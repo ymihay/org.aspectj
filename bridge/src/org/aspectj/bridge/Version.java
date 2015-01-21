@@ -30,7 +30,7 @@ public class Version {
     public static final long NOTIME = 0L;
     
     /** set by build script */
-    public static final String text = "DEVELOPMENT";
+    public static final String text = "1.8.3";
     // VersionUptodate.java scans for "static final String text = "
     
     /** 

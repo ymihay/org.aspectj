@@ -594,7 +594,11 @@ class BcelAdvice extends Advice {
 							.getSignature())) {
 						previousIsClosure = false;
 						if ((getExtraParameterFlags() & ThisJoinPointStaticPart) != 0) {
-							shadow.getThisJoinPointStaticPartBcelVar().appendLoad(il, fact);
+							if( shadow.getEnclosingClass().shouldOmitAJCPreclinit()){
+								shadow.injectThisJoinPointStaticPart(il,fact);
+							}else{
+								shadow.getThisJoinPointStaticPartBcelVar().appendLoad(il, fact);
+							}
 						}
 					} else if ("Lorg/aspectj/lang/JoinPoint;".equals(getSignature().getParameterTypes()[i].getSignature())) {
 						previousIsClosure = false;
@@ -605,7 +609,11 @@ class BcelAdvice extends Advice {
 							.getSignature())) {
 						previousIsClosure = false;
 						if ((getExtraParameterFlags() & ThisEnclosingJoinPointStaticPart) != 0) {
-							shadow.getThisEnclosingJoinPointStaticPartBcelVar().appendLoad(il, fact);
+							if(shadow.getEnclosingClass().shouldOmitAJCPreclinit()){
+								shadow.injectThisJoinPointStaticPart(il,fact);
+							}else{
+								shadow.getThisEnclosingJoinPointStaticPartBcelVar().appendLoad(il, fact);
+							}
 						}
 					} else if (hasExtraParameter()) {
 						previousIsClosure = false;
@@ -641,7 +649,12 @@ class BcelAdvice extends Advice {
 			// these need to be in that same order as parameters in
 			// org.aspectj.ajdt.internal.compiler.ast.AdviceDeclaration
 			if ((getExtraParameterFlags() & ThisJoinPointStaticPart) != 0) {
-				shadow.getThisJoinPointStaticPartBcelVar().appendLoad(il, fact);
+				if(shadow.getEnclosingClass().shouldOmitAJCPreclinit()){
+					shadow.injectThisJoinPointStaticPart(il,fact);
+				}
+				else{
+					shadow.getThisJoinPointStaticPartBcelVar().appendLoad(il, fact);
+				}
 			}
 
 			if ((getExtraParameterFlags() & ThisJoinPoint) != 0) {
@@ -649,7 +662,11 @@ class BcelAdvice extends Advice {
 			}
 
 			if ((getExtraParameterFlags() & ThisEnclosingJoinPointStaticPart) != 0) {
-				shadow.getThisEnclosingJoinPointStaticPartBcelVar().appendLoad(il, fact);
+				if(shadow.getEnclosingClass().shouldOmitAJCPreclinit()){
+					shadow.injectThisJoinPointStaticPart(il,fact);
+				}else{
+					shadow.getThisEnclosingJoinPointStaticPartBcelVar().appendLoad(il, fact);
+				}
 			}
 		}
 

@@ -8,3 +8,6 @@ Implementation-Version: @build.version.short@
 Implementation-Vendor: @company.name@
 Premain-Class: org.aspectj.weaver.loadtime.Agent
 Can-Redefine-Classes: true
+Agent-Class: org.aspectj.weaver.loadtime.Agent
+Can-Retransform-Classes: true
+

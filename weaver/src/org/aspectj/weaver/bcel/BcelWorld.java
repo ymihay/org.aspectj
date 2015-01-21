@@ -421,8 +421,25 @@ public class BcelWorld extends World implements Repository {
 				}
 				return jc;
 			} catch (ClassNotFoundException e) {
-				if (trace.isTraceEnabled()) {
-					trace.error("Unable to find class '" + name + "' in repository", e);
+				if (!(name.contains("$$anon") || name.contains("$$less"))){ //$$anon and $$less are internal compilation clases from scala
+					/*special case for scala code. if we are searching for an internal trait we have to add $ at this point. 
+					For example: Class1$Trait2$Class2 in this point come as Class1$Trait2 and the physical file is Class1$Trait2$.class*/
+					try {
+						JavaClass jc = delegate.loadClass(name+"$");
+						if (trace.isTraceEnabled()) {
+							trace.event("lookupJavaClass", this, new Object[] { name, jc });
+						}
+						return jc;
+					} catch (ClassNotFoundException e1) {
+						if (name.contains("scala.") || name.contains("scalax.")){//impossible to find some internal compilation clases. hide errors.not important
+							//trace.info("Unable to find class '" + name + "' in repository", e); not log
+						}
+						else if (trace.isTraceEnabled()) {
+							trace.error("Unable to find class '" + name + "' in repository", e);
+						}
+					}
+					
+					
 				}
 				return null;
 			}
