@@ -49,20 +49,34 @@ public class ClassPreProcessorAgentAdapter implements ClassFileTransformer {
 	public byte[] transform(ClassLoader loader, String className, Class<?> classBeingRedefined, ProtectionDomain protectionDomain,
 			byte[] bytes) throws IllegalClassFormatException {
 
-		if (org.aspectj.weaver.loadtime.Agent.UseOriginalByteCode()){
+		try{
+			if (classBeingRedefined != null) {
+				System.err.println("INFO: (Enh120375):  AspectJ attempting reweave of '" + className + "'");
+			}	
+			// Performance improvement for ColdFusion page system (ExprClassLoader) and for Jira (ModuleClassLoader)
+			// This change prevents to initialize any weaver attached to the hundrends of classloaders created by those "animals".
+			if(loader ==null){
+				return bytes;
+			}
+			String loaderName = loader.getClass().toString();
+			if(loaderName.contains("ExprClassLoader") 
+					|| loaderName.contains("ModuleClassLoader") 
+					|| loaderName.contains("sun.reflect.DelegatingClassLoader") 
+					|| loaderName.contains("com.google.inject.internal.BytecodeGen") 
+					|| loaderName.contains("org.mozilla.javascript.DefiningClassLoader")
+					|| loaderName.contains("org.codehaus.groovy.runtime.callsite.CallSiteClassLoader") //UXM-1212
+					|| loaderName.contains("org.codehaus.groovy.reflection.SunClassLoader") //UXM-1212
+					|| loaderName.contains("org.apache.derby.impl.services.reflect.ReflectLoaderJava2") //UXM-1212
+				)
+			{
+				return bytes;
+			}
+			
+			return s_preProcessor.preProcess(className, bytes, loader, protectionDomain);
+		}catch(Throwable th){
+			System.out.println("Error shield while weaving: " + th);
+			th.printStackTrace();
 			return bytes;
 		}
-		
-		boolean redefine = false;
-		if (classBeingRedefined != null) {
-			redefine=true;
-		}
-		byte[] wovenBytes = null;
-		try {
-			wovenBytes = s_preProcessor.preProcess(className, bytes, loader, protectionDomain,redefine);
-		} catch (Throwable th) {
-			return bytes;
-		}
-		return wovenBytes;
 	}
 }

@@ -434,8 +434,11 @@ public class SimpleCache {
 			initialitedSet.add(key);
 		} else {
 			String storedClasses = new String(storedBytes);
-			storedClasses += GENERATED_CACHE_SEPARATOR + generatedClassName;
-			generatedCache.put(key, storedClasses.getBytes());
+			//UXM-1143 - If the class has been already added we don't have to add it again.
+			if ( storedClasses == null || storedClasses.isEmpty() || ! storedClasses.contains(generatedClassName) ) {
+				storedClasses += GENERATED_CACHE_SEPARATOR + generatedClassName;
+				generatedCache.put(key, storedClasses.getBytes());
+			}
 		}
 	}
 
